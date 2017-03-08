@@ -9,6 +9,8 @@
 
 ### Above combination will ignore all files without extensions (binaries) ###
 
+!Makefile
+S
 *.[oa]
 *.html
 *.#*
