@@ -38,8 +38,7 @@ std::string WebPageScraper::get_page_html(std::string page) {
 /**
    Takes in a string of HTML and parses it, looking for all hrefs on the page.
    TODO: couple different implementation options:
-     Convert to XML and parse that (libtidy, libxml),
-     Find library to just parse the HTML directly (gumbo-query which wraps
+     Use library to parse the HTML(gumbo-query which wraps
        Google's gumbo-parser for C++),
      Hack it and search each line for all occurrences of /<a href="/ and
      grab text until closing /"/
