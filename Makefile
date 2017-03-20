@@ -4,7 +4,7 @@ WTDIR = webspider_threads
 WPDIR = webspider_threadpools
 
 CC = g++
-CFLAGS = -std=c++11 -lboost_system -lboost_thread -lpthread
+CFLAGS = -std=c++11 -lboost_system -lboost_thread -lpthread -lgumbo
 OBJS = threadsafe_queue.o webpage_scraper.o
 
 all: main
