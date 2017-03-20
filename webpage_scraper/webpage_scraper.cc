@@ -50,8 +50,40 @@ std::string WebPageScraper::get_page_html(std::string page) {
 **/
 std::vector<std::string *> WebPageScraper::parse_html(std::string page_html) {
   std::vector<std::string *> page_hrefs;
+  std::vector<GumboNode *> nodes;
 
   // Dummy code
-  page_hrefs.push_back(new std::string(page_html));
+
+  GumboOutput *output = gumbo_parse(page_html.c_str());
+  GumboNode *root = output->root;
+  nodes.push_back(root);
+
+  while (!nodes.empty()) {
+    GumboNode *node = nodes.back();
+    nodes.pop_back();
+    if (node->type != GUMBO_NODE_ELEMENT) {
+     continue;
+    }
+
+
+    std::cout << nodes.size() << " : " << node->v.element.tag << std::endl;
+
+    if (node->v.element.tag == GUMBO_TAG_A) {
+      GumboAttribute *href =
+          gumbo_get_attribute(&node->v.element.attributes, "href");
+      if (href != NULL) {
+        std::cout << href->value << std::endl;
+        page_hrefs.push_back(new std::string(href->value));
+      }
+    }
+
+    GumboVector *children = &root->v.element.children;
+    for (size_t i = 0; i < children->length; i++) {
+      nodes.push_back((GumboNode *)(children->data[i]));
+    }
+  }
+
+  gumbo_destroy_output(&kGumboDefaultOptions, output);
+
   return page_hrefs;
 }
