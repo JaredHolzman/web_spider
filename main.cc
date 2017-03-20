@@ -8,6 +8,6 @@ int main(int argc, char *argv[]) {
   std::vector<std::string *> hrefs = scraper.get_page_hrefs(argv[1]);
 
   for(std::string *s: hrefs){
-    std::cout << *s;
+    std::cout << *s << std::endl;
   }
 }
