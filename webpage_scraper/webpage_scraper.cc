@@ -6,9 +6,11 @@ WebPageScraper::WebPageScraper() {}
    Takes in webpage address and returns a vector of string pointers of all
    hrefs on that page.
  **/
-std::vector<std::string *> WebPageScraper::get_page_hrefs(std::string page) {
-  std::string page_html = get_page_html(page);
-  std::vector<std::string *> page_hrefs = parse_html(page_html);
+std::vector<std::string *>
+WebPageScraper::get_page_hrefs(std::string webpage_address) {
+  std::string webpage_html = get_page_html(webpage_address);
+  std::vector<std::string *> page_hrefs =
+      parse_html(webpage_html, webpage_address);
 
   return page_hrefs;
 }
@@ -19,13 +21,13 @@ std::vector<std::string *> WebPageScraper::get_page_hrefs(std::string page) {
    Takes in a webpage address and returns a string of all HTML for that page.
    Includes response headers as well for now for debugging.
 **/
-std::string WebPageScraper::get_page_html(std::string page) {
+std::string WebPageScraper::get_page_html(std::string webpage_address) {
   std::string page_text = "";
-  boost::asio::ip::tcp::iostream s(page, "http");
+  boost::asio::ip::tcp::iostream s(webpage_address, "http");
   if (!s)
-    std::cout << "Could not connect to " << page;
+    std::cout << "Could not connect to " << webpage_address;
   s << "GET / HTTP/1.0\r\n"
-    << "Host: " << page << "\r\n"
+    << "Host: " << webpage_address << "\r\n"
     << "Accept: */*\r\n"
     << "Connection: close\r\n\r\n";
   for (std::string line; getline(s, line);) {
@@ -48,15 +50,11 @@ std::string WebPageScraper::get_page_html(std::string page) {
 
    Returns vector of string pointers for each href found.
 **/
-std::vector<std::string *> WebPageScraper::parse_html(std::string page_html) {
+std::vector<std::string *>
+WebPageScraper::parse_html(std::string page_html, std::string webpage_address) {
   std::vector<std::string *> page_hrefs;
   std::vector<GumboNode *> nodes;
 
-  // Dummy code
-  // page_hrefs.push_back(new std::string(page_html));
-
-  // Test
-  std::string html = "<html><h1>Hello, World!</h1><html>";
   GumboOutput *output = gumbo_parse(page_html.c_str());
   GumboNode *root = output->root;
   nodes.push_back(root);
@@ -71,17 +69,19 @@ std::vector<std::string *> WebPageScraper::parse_html(std::string page_html) {
       continue;
     }
 
-    // std::string tagname = gumbo_normalized_tagname(node->v.element.tag);
-    // GumboStringPiece s = node->v.element.original_tag;
-    // gumbo_tag_from_original_text(&s);
-    // std::cout << nodes.size() << " : " << tagname << std::endl;
-
     if (node->v.element.tag == GUMBO_TAG_A) {
       GumboAttribute *href =
           gumbo_get_attribute(&node->v.element.attributes, "href");
       if (href != NULL) {
-        // std::cout << href->value << std::endl;
-        page_hrefs.push_back(new std::string(href->value));
+        std::string href_string = std::string(href->value);
+        size_t pos;
+        if ((pos = href_string.find_first_of("://"))) {
+          page_hrefs.push_back(
+              new std::string(href_string.substr(pos + 3, std::string::npos)));
+        } else {
+          page_hrefs.push_back(
+              new std::string(webpage_address.append(href_string)));
+        }
       }
     }
 
@@ -93,6 +93,5 @@ std::vector<std::string *> WebPageScraper::parse_html(std::string page_html) {
   }
 
   gumbo_destroy_output(&kGumboDefaultOptions, output);
-
   return page_hrefs;
 }

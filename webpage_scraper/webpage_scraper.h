@@ -10,11 +10,11 @@
 class WebPageScraper {
 public:
   WebPageScraper();
-  std::vector<std::string *> get_page_hrefs(std::string page);
+  std::vector<std::string *> get_page_hrefs(std::string webpage_address);
 
 private:
-  std::string get_page_html(std::string page);
-  std::vector<std::string *> parse_html(std::string page_html);
+  std::string get_page_html(std::string webpage_address);
+  std::vector<std::string *> parse_html(std::string webpage_html, std::string webpage_address);
 };
 
 #endif
