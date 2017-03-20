@@ -5,12 +5,18 @@ WPDIR = webspider_threadpools
 
 CC = g++
 CFLAGS = -std=c++11 -lboost_system -lboost_thread -lpthread -lgumbo
-OBJS = threadsafe_queue.o webpage_scraper.o
+OBJS = threadsafe_queue.o webpage_scraper.o webspider_threadpools.o webspider_threads.o
 
 all: main
 
 main: main.cc $(OBJS)
 	$(CC) $(OBJS) $(CFLAGS) main.cc -o spider
+
+webspider_threadpools.o: $(WPDIR)/webspider_threadpools.cc $(WPDIR)/webspider_threadpools.h
+	$(CC) $(CFLAGS) -c $(WPDIR)/webspider_threadpools.cc
+
+webspider_threads.o: $(WTDIR)/webspider_threads.cc $(WTDIR)/webspider_threads.h
+	$(CC) $(CFLAGS) -c $(WTDIR)/webspider_threads.cc
 
 threadsafe_queue.o: $(TQDIR)/threadsafe_queue.cc $(TQDIR)/threadsafe_queue.h
 	$(CC) $(CFLAGS) -c $(TQDIR)/threadsafe_queue.cc
