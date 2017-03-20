@@ -2,6 +2,7 @@
 #define _WEBPAGE_SCRAPER_H
 
 #include <boost/asio.hpp>
+#include <vector>
 #include <iostream>
 #include <string>
 
