@@ -20,8 +20,9 @@ make
 ./spider <webpage-address>
 ```
 `www.umass.edu` is a good example.
-For now, this will just print out the page's HTML.
+For now, this will just print out the page's hrefs.
 
 ##Dependencies
 * Boost
+* gumbo-parser
 
