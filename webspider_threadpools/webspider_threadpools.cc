@@ -33,8 +33,8 @@ void CrawlWebPools(std::string *root_webpage_address, int max_threads,
       printf("ERROR; return code from pthread_join() is %d\n", rc);
       exit(-1);
     }
-    printf("Spider: completed join with thread %d having a status of %ld\n",
-           i, (long)status);
+    printf("Spider: completed join with thread %d having a status of %ld\n", i,
+           (long)status);
   }
 }
 
@@ -64,8 +64,10 @@ void *crawl_page(void *threadID) {
       webpage_address = tsqueue->remove();
     }
 
+    pthread_mutex_lock(&lock);
     std::vector<std::string *> linked_pages =
         scraper->get_page_hrefs(*webpage_address);
+    pthread_mutex_unlock(&lock);
     for (size_t i = 0; i < linked_pages.size(); i++) {
       std::cout << *linked_pages[i] << std::endl;
       tsqueue->append(linked_pages[i]);

@@ -25,7 +25,7 @@ std::string WebPageScraper::get_page_html(std::string webpage_address) {
   std::string page_text = "";
   boost::asio::ip::tcp::iostream s(webpage_address, "http");
   if (!s)
-    std::cout << "Could not connect to " << webpage_address;
+    std::cout << "Could not connect to " << webpage_address << std::endl;
   s << "GET / HTTP/1.0\r\n"
     << "Host: " << webpage_address << "\r\n"
     << "Accept: */*\r\n"
@@ -34,6 +34,7 @@ std::string WebPageScraper::get_page_html(std::string webpage_address) {
     page_text.append(line);
     page_text.append("\n");
   }
+  s.close();
   return page_text;
 }
 
