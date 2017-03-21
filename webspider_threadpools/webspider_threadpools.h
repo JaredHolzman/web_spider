@@ -9,9 +9,10 @@
 namespace WebspiderThreadpools {
 
 void CrawlWeb(std::string *root_webpage_address, int _max_threads,
-                   int max_depth, ThreadsafeQueue *_tsqueue1,
-                   ThreadsafeQueue *_tsqueue2, WebPageScraper *_scraper);
+              int max_depth, ThreadsafeQueue *_tsqueue1,
+              ThreadsafeQueue *_tsqueue2, WebPageScraper *_scraper);
 void *crawl_page(void *threadID);
+void process_page();
 }
 
 #endif

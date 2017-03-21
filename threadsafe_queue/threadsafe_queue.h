@@ -12,7 +12,7 @@ public:
   // Constructor to initialize locks, conditional variables, and vector
   ThreadsafeQueue();
   void append(std::string *page_href);
-  std::string * remove();
+  std::string *remove();
   void clear();
   int size();
   bool isEmpty();

@@ -32,9 +32,7 @@ void ThreadsafeQueue::clear(){
 }
 
 int ThreadsafeQueue::size() {
-  pthread_mutex_lock(&queue_lock);
   return queue.size();
-  pthread_mutex_unlock(&queue_lock);
 }
 
 bool ThreadsafeQueue::isEmpty() { return queue.empty(); }
