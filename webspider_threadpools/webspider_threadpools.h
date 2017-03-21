@@ -9,6 +9,6 @@
 void CrawlWebPools(std::string *root_webpage_address, int _max_threads,
                    int max_depth, ThreadsafeQueue *_tsqueue,
                    WebPageScraper *_scraper);
-static void *crawl_page(void *threadID);
+void *crawl_page(void *threadID);
 
 #endif

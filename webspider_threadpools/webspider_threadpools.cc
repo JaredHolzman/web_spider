@@ -13,7 +13,7 @@ void CrawlWebPools(std::string *root_webpage_address, int max_threads,
   tsqueue = _tsqueue;
   scraper = _scraper;
   max_depth = new int(_max_depth);
-  pthread_mutex_init(&items_lock, NULL);
+  pthread_mutex_init(&lock, NULL);
 
   pthread_t workers[max_threads];
   void *status;
@@ -53,8 +53,9 @@ void *crawl_page(void *threadID) {
     std::vector<std::string *> linked_pages =
         scraper->get_page_hrefs(*webpage_address);
     for (size_t i = 0; i < linked_pages.size(); i++) {
+      std::cout << *linked_pages[i] << std::endl;
       tsqueue->append(linked_pages[i]);
     }
   }
-  pthread_exit(threadId);
+  pthread_exit(threadID);
 }
