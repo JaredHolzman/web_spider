@@ -62,13 +62,20 @@ WebPageScraper::parse_html(std::string page_html, std::string webpage_address) {
     if (node->v.element.tag == GUMBO_TAG_A &&
         (href = gumbo_get_attribute(&node->v.element.attributes, "href"))) {
       std::string href_string = std::string(href->value);
+
+      // Ignore hrefs that are not valid links to other pages
+      if (href_string.front() != '/' &&
+          href_string.substr(0, 4).compare("http") != 0) {
+        continue;
+      }
+
       size_t pos;
       if ((pos = href_string.find_first_of("://"))) {
         page_hrefs.push_back(
             new std::string(href_string.substr(pos + 3, std::string::npos)));
       } else {
         page_hrefs.push_back(
-            new std::string(webpage_address.append(href_string)));
+            new std::string(webpage_address + href_string));
       }
     }
 
