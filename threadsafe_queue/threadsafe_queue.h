@@ -13,6 +13,8 @@ public:
   ThreadsafeQueue();
   void append(std::string *page_href);
   std::string * remove();
+  void clear();
+  int size();
   bool isEmpty();
 
 private:

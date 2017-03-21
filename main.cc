@@ -13,8 +13,11 @@ int main(int argc, char *argv[]) {
   // std::cout << *s << std::endl;
   // }
 
-  ThreadsafeQueue *tsqueue = new ThreadsafeQueue();
+  ThreadsafeQueue *tsqueue1 = new ThreadsafeQueue();
+  ThreadsafeQueue *tsqueue2 = new ThreadsafeQueue();
   WebPageScraper *scraper = new WebPageScraper();
 
-  CrawlWebPools(new std::string(argv[1]), atoi(argv[2]), atoi(argv[3]), tsqueue, scraper);
+  WebspiderThreadpools::CrawlWeb(new std::string(argv[1]), atoi(argv[2]),
+                                      atoi(argv[3]), tsqueue1, tsqueue2,
+                                      scraper);
 }

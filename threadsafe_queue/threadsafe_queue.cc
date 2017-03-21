@@ -12,7 +12,7 @@ void ThreadsafeQueue::append(std::string *page_href) {
   pthread_mutex_unlock(&queue_lock);
 }
 
-std::string * ThreadsafeQueue::remove() {
+std::string *ThreadsafeQueue::remove() {
   pthread_mutex_lock(&queue_lock);
   while (queue.empty()) {
     pthread_cond_wait(&queue_empty, &queue_lock);
@@ -25,6 +25,17 @@ std::string * ThreadsafeQueue::remove() {
   return head;
 }
 
-bool ThreadsafeQueue::isEmpty() {
-  return queue.empty();
+void ThreadsafeQueue::clear(){
+  pthread_mutex_lock(&queue_lock);
+  queue.clear();
+  pthread_mutex_unlock(&queue_lock);
 }
+
+int ThreadsafeQueue::size() {
+  pthread_mutex_lock(&queue_lock);
+  return queue.size();
+  pthread_mutex_unlock(&queue_lock);
+}
+
+bool ThreadsafeQueue::isEmpty() { return queue.empty(); }
+
