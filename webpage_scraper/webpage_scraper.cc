@@ -75,8 +75,7 @@ WebPageScraper::parse_html(std::string page_html, std::string webpage_address) {
         page_hrefs.push_back(
             new std::string(href_string.substr(pos + 3, std::string::npos)));
       } else {
-        page_hrefs.push_back(
-            new std::string(webpage_address + href_string));
+        page_hrefs.push_back(new std::string(webpage_address + href_string));
       }
     }
 
