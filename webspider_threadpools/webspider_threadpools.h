@@ -6,17 +6,9 @@
 #include <iostream>
 #include <string>
 
-class WebSpiderThreadPools {
-public:
-  WebSpiderThreadPools(int max_threads);
-  void crawl_web(std::string root_webpage_address);
-
-private:
-  int max_threads; // Number of threads running at once
-  static ThreadsafeQueue *tsqueue;
-  static WebPageScraper scraper;
-
-  static void *crawl_page(void *threadID);
-};
+void CrawlWebPools(std::string *root_webpage_address, int _max_threads,
+                   int max_depth, ThreadsafeQueue *_tsqueue,
+                   WebPageScraper *_scraper);
+static void *crawl_page(void *threadID);
 
 #endif
