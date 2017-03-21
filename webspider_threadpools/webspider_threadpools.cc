@@ -5,7 +5,7 @@ WebPageScraper *scraper;
 int *max_depth;
 pthread_mutex_t lock;
 
-void CrawlWebPools(std::string *root_webpage_address, int max_threads,
+void WebspiderThreadpools::CrawlWeb(std::string *root_webpage_address, int max_threads,
                    int _max_depth, ThreadsafeQueue *_tsqueue,
                    WebPageScraper *_scraper) {
 
@@ -37,7 +37,7 @@ void CrawlWebPools(std::string *root_webpage_address, int max_threads,
   }
 }
 
-void *crawl_page(void *threadID) {
+void *WebspiderThreadpools::crawl_page(void *threadID) {
   while (!tsqueue->isEmpty()) {
     Page *page = tsqueue->remove();
 
