@@ -22,7 +22,7 @@ make
 `www.umass.edu` is a good example.
 For now, this will just print out the page's hrefs.
 
-##Dependencies
+# Dependencies
 * Boost
 * gumbo-parser
 
