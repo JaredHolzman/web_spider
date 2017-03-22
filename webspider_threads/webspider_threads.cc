@@ -24,11 +24,11 @@ void WebspiderThreads::CrawlWeb(std::string *root_webpage_address,
   n = 1;
 
   while (!t_tsqueue->isEmpty()) {
-    // If the max number of threads has been reached, join the first thread in
-    // the list
+
+    // Reserve item for thread
     pthread_mutex_lock(&t_lock);
     while (n == 0) {
-      if(t_tsqueue->isEmpty()){
+      if (t_tsqueue->isEmpty()) {
         pthread_exit(NULL);
       }
       pthread_cond_wait(&t_items, &t_lock);
@@ -36,8 +36,10 @@ void WebspiderThreads::CrawlWeb(std::string *root_webpage_address,
     n--;
     pthread_mutex_unlock(&t_lock);
 
-    if (workers.size() == max_threads) {
-      WebspiderThreads::join_workers(workers.front());
+    // If the max number of threads has been reached, join the first thread in
+    // the list
+    if (workers.size() == (size_t)max_threads) {
+      WebspiderThreads::join_workers(workers.front(), false);
       workers.erase(workers.begin());
     }
     pthread_t new_thread;
@@ -45,8 +47,8 @@ void WebspiderThreads::CrawlWeb(std::string *root_webpage_address,
     workers.push_back(new_thread);
   }
 
-  for (int i = 0; i < workers.size(); i++) {
-    WebspiderThreads::join_workers(workers[i]);
+  for (size_t i = 0; i < workers.size(); i++) {
+    WebspiderThreads::join_workers(workers[i], true);
   }
 }
 
@@ -71,7 +73,7 @@ void *WebspiderThreads::crawl_page(void *threadID) {
   pthread_exit(threadID);
 }
 
-void WebspiderThreads::join_workers(pthread_t thread) {
+void WebspiderThreads::join_workers(pthread_t thread, bool verbose) {
   void *status;
   int rc = pthread_join(thread, &status);
 
@@ -79,5 +81,7 @@ void WebspiderThreads::join_workers(pthread_t thread) {
     printf("ERROR; return code from pthread_join() is %d\n", rc);
     exit(-1);
   }
-  printf("Spider: completed join with thread %ld\n", (long)status);
+  if (verbose) {
+    printf("Spider: completed join with thread %ld\n", (long)status);
+  }
 }

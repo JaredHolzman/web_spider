@@ -12,6 +12,7 @@ void CrawlWeb(std::string *root_webpage_address, int _max_threads,
               int max_depth, ThreadsafeQueue *_tsqueue,
               WebPageScraper *_scraper);
 void *crawl_page(void *threadID);
+void join_workers(pthread_t thread, bool verbose);
 }
 
 #endif
