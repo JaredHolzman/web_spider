@@ -17,12 +17,11 @@ int main(int argc, char *argv[]) {
   ThreadsafeQueue *tsqueue = new ThreadsafeQueue();
   WebPageScraper *scraper = new WebPageScraper();
 
-  // if (strcmp(argv[4], "t")) {
-  // WebspiderThreads::CrawlWeb(new std::string(argv[1]), atoi(argv[2]),
-  // atoi(argv[3]), tsqueue, scraper);
-  // }
-  // else if (strcmp(argv[4], "p")) {
-  WebspiderThreadpools::CrawlWeb(new std::string(argv[1]), atoi(argv[2]),
-                                 atoi(argv[3]), tsqueue, scraper);
-  // }
+  if (strcmp(argv[4], "t")) {
+    WebspiderThreads::CrawlWeb(new std::string(argv[1]), atoi(argv[2]),
+                               atoi(argv[3]), tsqueue, scraper);
+  } else if (strcmp(argv[4], "p")) {
+    WebspiderThreadpools::CrawlWeb(new std::string(argv[1]), atoi(argv[2]),
+                                   atoi(argv[3]), tsqueue, scraper);
+  }
 }

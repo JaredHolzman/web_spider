@@ -1,24 +1,24 @@
 #include "webspider_threadpools.h"
 
-ThreadsafeQueue *tsqueue;
-WebPageScraper *scraper;
-int *max_depth;
-pthread_mutex_t lock;
+ThreadsafeQueue *tp_tsqueue;
+WebPageScraper *tp_scraper;
+int *tp_max_depth;
+pthread_mutex_t tp_lock;
 
 void WebspiderThreadpools::CrawlWeb(std::string *root_webpage_address, int max_threads,
                    int _max_depth, ThreadsafeQueue *_tsqueue,
                    WebPageScraper *_scraper) {
 
   // Initialize global variables and lock
-  tsqueue = _tsqueue;
-  scraper = _scraper;
-  max_depth = new int(_max_depth);
-  pthread_mutex_init(&lock, NULL);
+  tp_tsqueue = _tsqueue;
+  tp_scraper = _scraper;
+  tp_max_depth = new int(_max_depth);
+  pthread_mutex_init(&tp_lock, NULL);
 
   pthread_t workers[max_threads];
   void *status;
 
-  tsqueue->append(new Page(root_webpage_address, 0));
+  tp_tsqueue->append(new Page(root_webpage_address, 0));
 
   // Create threads to crawl webpages
   for (long i = 0; i < max_threads; i++) {
@@ -38,16 +38,16 @@ void WebspiderThreadpools::CrawlWeb(std::string *root_webpage_address, int max_t
 }
 
 void *WebspiderThreadpools::crawl_page(void *threadID) {
-  while (!tsqueue->isEmpty()) {
-    Page *page = tsqueue->remove();
+  while (!tp_tsqueue->isEmpty()) {
+    Page *page = tp_tsqueue->remove();
 
     std::vector<std::string *> linked_pages =
-        scraper->get_page_hrefs(*page->get_href());
+      tp_scraper->get_page_hrefs(*page->get_href());
     for (size_t i = 0; i < linked_pages.size(); i++) {
       std::cout << *linked_pages[i] << std::endl;
       int depth_next;
-      if ((depth_next = page->get_depth() + 1) < *max_depth) {
-        tsqueue->append(new Page(linked_pages[i], depth_next));
+      if ((depth_next = page->get_depth() + 1) < *tp_max_depth) {
+        tp_tsqueue->append(new Page(linked_pages[i], depth_next));
       }
     }
   }
