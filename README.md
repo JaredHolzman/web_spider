@@ -23,6 +23,6 @@ make
 For now, this will just print out hrefs found as it explores up to `max-depth`.
 
 ## Dependencies
-* Boost
+* libcurl
 * gumbo-parser
 
