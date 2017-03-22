@@ -3,6 +3,7 @@
 
 #include "../threadsafe_queue/threadsafe_queue.h"
 #include "../webpage_scraper/webpage_scraper.h"
+#include <pthread.h>
 #include <iostream>
 #include <string>
 
