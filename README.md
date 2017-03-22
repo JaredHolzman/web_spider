@@ -17,12 +17,12 @@ Multithreaded Web Spider meant for ~~evil~~ good. Two implementations, one with 
 To run the spider, run:
 ```
 make
-./spider <webpage-address>
+./spider <webpage-address> <max-threads> <max-depth> <t|p>
 ```
 `www.umass.edu` is a good example.
-For now, this will just print out the page's hrefs.
+For now, this will just print out hrefs found as it explores up to `max-depth`.
 
-# Dependencies
+## Dependencies
 * Boost
 * gumbo-parser
 
