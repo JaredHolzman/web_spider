@@ -1,5 +1,15 @@
 #include "webpage_scraper.h"
 
+// Write cURL output to string. cURL expects method with this signature.
+size_t curl_to_string(void *ptr, size_t size, size_t nmemb, void *data) {
+  std::string *str = static_cast<std::string *>(data);
+  char *sptr = static_cast<char *>(ptr);
+  for (size_t i = 0; i < size * nmemb; i++) {
+    str->push_back(sptr[i]);
+  }
+  return size * nmemb;
+}
+
 WebPageScraper::WebPageScraper() {}
 
 /**
@@ -8,7 +18,8 @@ WebPageScraper::WebPageScraper() {}
  **/
 std::vector<std::string *>
 WebPageScraper::get_page_hrefs(std::string webpage_address) {
-  std::string webpage_html = get_page_html(webpage_address);
+  std::string webpage_html;
+  get_page_html(webpage_address, &webpage_html);
   std::vector<std::string *> page_hrefs =
       parse_html(webpage_html, webpage_address);
 
@@ -16,26 +27,32 @@ WebPageScraper::get_page_hrefs(std::string webpage_address) {
 }
 
 /**
-   Modified from https://www.rosettacode.org/wiki/Web_scraping#C.2B.2B
-
    Takes in a webpage address and returns a string of all HTML for that page.
    Includes response headers as well for now for debugging.
 **/
-std::string WebPageScraper::get_page_html(std::string webpage_address) {
-  std::string page_text = "";
-  boost::asio::ip::tcp::iostream s(webpage_address, "http");
-  if (!s)
-    std::cout << "Could not connect to " << webpage_address << std::endl;
-  s << "GET / HTTP/1.0\r\n"
-    << "Host: " << webpage_address << "\r\n"
-    << "Accept: */*\r\n"
-    << "Connection: close\r\n\r\n";
-  for (std::string line; getline(s, line);) {
-    page_text.append(line);
-    page_text.append("\n");
+void WebPageScraper::get_page_html(std::string webpage_address,
+                                   std::string *webpage_html) {
+  CURL *curl;
+  CURLcode res;
+  std::string pagedata;
+
+  curl = curl_easy_init();
+  if (curl) {
+    curl_easy_setopt(curl, CURLOPT_URL, webpage_address.c_str());
+    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_to_string);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, webpage_html);
+
+    /* Perform the request, res will get the return code */
+    res = curl_easy_perform(curl);
+    /* Check for errors */
+    if (res != CURLE_OK)
+      fprintf(stderr, "curl_easy_perform() failed: %s\n",
+              curl_easy_strerror(res));
+
+    /* always cleanup */
+    curl_easy_cleanup(curl);
   }
-  s.close();
-  return page_text;
 }
 
 /**
