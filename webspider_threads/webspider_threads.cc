@@ -29,6 +29,9 @@ void WebspiderThreads::CrawlWeb(std::string *root_webpage_address,
     pthread_mutex_lock(&t_lock);
     while (n == 0) {
       if (t_tsqueue->isEmpty()) {
+        for (size_t i = 0; i < workers.size(); i++) {
+          WebspiderThreads::join_workers(workers[i], true);
+        }
         pthread_exit(NULL);
       }
       pthread_cond_wait(&t_items, &t_lock);
