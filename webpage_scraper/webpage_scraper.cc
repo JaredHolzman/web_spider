@@ -47,8 +47,8 @@ void WebPageScraper::get_page_html(std::string webpage_address,
     res = curl_easy_perform(curl);
     /* Check for errors */
     if (res != CURLE_OK)
-      fprintf(stderr, "curl_easy_perform() failed: %s\n",
-              curl_easy_strerror(res));
+      std::wcerr << "curl_easy_perform() failed: " << curl_easy_strerror(res)
+                 << " " << webpage_address.c_str() << std::endl;
 
     /* always cleanup */
     curl_easy_cleanup(curl);
@@ -81,14 +81,22 @@ WebPageScraper::parse_html(std::string page_html, std::string webpage_address) {
         (href = gumbo_get_attribute(&node->v.element.attributes, "href"))) {
       std::string href_string = std::string(href->value);
 
+      size_t pos;
+      // Remove route/query and trailing slash
+      if ((pos = href_string.find_first_of("#?")) != std::string::npos) {
+        href_string.erase(pos, std::string::npos);
+      }
+      if(href_string.back() == '/'){
+        href_string.erase(href_string.begin());
+      }
+
       // Ignore hrefs that are not valid links to other pages
       if (href_string.front() != '/' &&
           href_string.substr(0, 4).compare("http") != 0) {
         continue;
       }
 
-      size_t pos;
-      if ((pos = href_string.find_first_of("://"))) {
+      if ((pos = href_string.find("://")) != std::string::npos) {
         page_hrefs.push_back(
             new std::string(href_string.substr(pos + 3, std::string::npos)));
       } else {
