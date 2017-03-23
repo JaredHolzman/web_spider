@@ -86,8 +86,8 @@ WebPageScraper::parse_html(std::string page_html, std::string webpage_address) {
       if ((pos = href_string.find_first_of("#?")) != std::string::npos) {
         href_string.erase(pos, std::string::npos);
       }
-      if(href_string.back() == '/'){
-        href_string.erase(href_string.begin());
+      if (href_string.back() == '/') {
+        href_string.erase(href_string.end() - 1);
       }
 
       // Ignore hrefs that are not valid links to other pages
@@ -100,7 +100,9 @@ WebPageScraper::parse_html(std::string page_html, std::string webpage_address) {
         page_hrefs.push_back(
             new std::string(href_string.substr(pos + 3, std::string::npos)));
       } else {
-        page_hrefs.push_back(new std::string(webpage_address + href_string));
+        page_hrefs.push_back(new std::string(
+            webpage_address.substr(0, webpage_address.find_first_of("/")) +
+            href_string));
       }
     }
 
