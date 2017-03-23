@@ -115,3 +115,8 @@ WebPageScraper::parse_html(std::string page_html, std::string webpage_address) {
   gumbo_destroy_output(&kGumboDefaultOptions, output);
   return page_hrefs;
 }
+
+std::string parse_url(std::string base, std::string href){
+
+  return "";
+}
