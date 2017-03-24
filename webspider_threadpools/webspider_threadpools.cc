@@ -19,7 +19,7 @@ void WebspiderThreadpools::CrawlWeb(std::string *root_webpage_address,
   pthread_t workers[max_threads];
 
   tp_tsqueue->append(
-                     new Page(root_webpage_address, new std::string("Root"), 0));
+      new Page(root_webpage_address, new std::string("Root"), 0));
 
   // Create threads to crawl webpages
   for (long i = 0; i < max_threads; i++) {

@@ -20,7 +20,7 @@ void WebspiderThreads::CrawlWeb(std::string *root_webpage_address,
 
   std::vector<pthread_t> workers;
 
-  t_tsqueue->append(new Page(root_webpage_address, 0));
+  t_tsqueue->append(new Page(root_webpage_address, new std::string("ROOT"), 0));
   n = 1;
 
   while (!t_tsqueue->isEmpty()) {
@@ -65,7 +65,8 @@ void *WebspiderThreads::crawl_page(void *threadID) {
     int depth_next;
 
     if ((depth_next = page->get_depth() + 1) < *t_max_depth) {
-      t_tsqueue->append(new Page(linked_pages[i], depth_next));
+      t_tsqueue->append(
+          new Page(linked_pages[i], page->get_href(), depth_next));
 
       pthread_mutex_lock(&t_lock);
       n++;
