@@ -18,7 +18,8 @@ void WebspiderThreadpools::CrawlWeb(std::string *root_webpage_address,
 
   pthread_t workers[max_threads];
 
-  tp_tsqueue->append(new Page(root_webpage_address, 0));
+  tp_tsqueue->append(
+      new Page(root_webpage_address, new std::string("ROOT"), 0));
 
   // Create threads to crawl webpages
   for (long i = 0; i < max_threads; i++) {
@@ -41,7 +42,8 @@ void *WebspiderThreadpools::crawl_page(void *threadID) {
       std::cout << *linked_pages[i] << std::endl;
       int depth_next;
       if ((depth_next = page->get_depth() + 1) < *tp_max_depth) {
-        tp_tsqueue->append(new Page(linked_pages[i], depth_next));
+        tp_tsqueue->append(
+            new Page(linked_pages[i], page->get_href(), depth_next));
       }
     }
   }
