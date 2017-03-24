@@ -81,6 +81,9 @@ WebPageScraper::parse_html(std::string page_html, std::string webpage_address) {
         (href = gumbo_get_attribute(&node->v.element.attributes, "href"))) {
       std::string href_string = std::string(href->value);
 
+      std::cout << parse_url(webpage_address, href_string) << std::endl;
+      parse_url(webpage_address, href_string);
+
       size_t pos;
       // Remove route/query and trailing slash
       if ((pos = href_string.find_first_of("#?")) != std::string::npos) {
@@ -116,7 +119,26 @@ WebPageScraper::parse_html(std::string page_html, std::string webpage_address) {
   return page_hrefs;
 }
 
-std::string parse_url(std::string base, std::string href){
+std::string WebPageScraper::parse_url(std::string base, std::string href) {
+  if (base.empty() || href.empty()) {
+    std::cout << "ALKJFSALKJFLKJDSALKJFDSALKJFLKSADLKJFSALKJDFLKJSALKFLKSAFLKA"
+              << std::endl;
+    return "";
+  }
 
-  return "";
+  SoupURI *_base = soup_uri_new(("http://" + base).c_str());
+  if (!SOUP_URI_IS_VALID(_base)) {
+    std::cout << "BAAAAAD: " << base << std::endl;
+  }
+  SoupURI *_url = href.find_first_of(":") < href.find_first_of("/#?")
+                      ? soup_uri_new(href.c_str())
+                      : soup_uri_new_with_base(_base, href.c_str());
+
+  // soup_uri_set_fragment(_url, "");
+  if (_url == NULL) {
+    std::cout << base << " -> " << href << base << std::endl;
+    // return "";
+  }
+
+  return std::string(soup_uri_to_string(_url, FALSE));
 }

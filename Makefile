@@ -4,7 +4,8 @@ WTDIR = webspider_threads
 WPDIR = webspider_threadpools
 
 CC = g++
-CFLAGS = -std=c++11 -lpthread -lgumbo -lcurl -lsoup-2.4 -lgio-2.0 -lgobject-2.0 -lglib-2.0
+INCLUDE = -I/usr/include/libsoup-2.4 -I/usr/include/libxml2 -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include
+CFLAGS = -std=c++11 $(INCLUDE) -lpthread -lgumbo -lcurl -lsoup-2.4 -lgio-2.0 -lgobject-2.0 -lglib-2.0
 OBJS = page.o threadsafe_queue.o webpage_scraper.o webspider_threadpools.o webspider_threads.o
 
 all: main

@@ -4,6 +4,7 @@
 #include "gumbo.h"
 #include <curl/curl.h>
 #include <iostream>
+#include <libsoup/soup.h>
 #include <string>
 #include <vector>
 
@@ -18,6 +19,7 @@ private:
   void get_page_html(std::string webpage_address, std::string *webpage_html);
   std::vector<std::string *> parse_html(std::string webpage_html,
                                         std::string webpage_address);
+  std::string parse_url(std::string base, std::string href);
 };
 
 #endif
