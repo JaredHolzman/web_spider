@@ -79,34 +79,12 @@ WebPageScraper::parse_html(std::string page_html, std::string webpage_address) {
     GumboAttribute *href;
     if (node->v.element.tag == GUMBO_TAG_A &&
         (href = gumbo_get_attribute(&node->v.element.attributes, "href"))) {
-      std::string href_string = std::string(href->value);
+      // std::cout << std::string(href->value) << std::endl;
+      std::string href_string =
+          parse_url(webpage_address, std::string(href->value));
 
-      std::cout << parse_url(webpage_address, href_string) << std::endl;
-      parse_url(webpage_address, href_string);
-
-      size_t pos;
-      // Remove route/query and trailing slash
-      if ((pos = href_string.find_first_of("#?")) != std::string::npos) {
-        href_string.erase(pos, std::string::npos);
-      }
-      if (href_string.back() == '/') {
-        href_string.erase(href_string.end() - 1);
-      }
-
-      // Ignore hrefs that are not valid links to other pages
-      if (href_string.front() != '/' &&
-          href_string.substr(0, 4).compare("http") != 0) {
-        continue;
-      }
-
-      if ((pos = href_string.find("://")) != std::string::npos) {
-        page_hrefs.push_back(
-            new std::string(href_string.substr(pos + 3, std::string::npos)));
-      } else {
-        page_hrefs.push_back(new std::string(
-            webpage_address.substr(0, webpage_address.find_first_of("/")) +
-            href_string));
-      }
+      // size_t pos = href_string.find("://");
+      page_hrefs.push_back(new std::string(href_string));
     }
 
     GumboVector *children = &node->v.element.children;
@@ -120,21 +98,24 @@ WebPageScraper::parse_html(std::string page_html, std::string webpage_address) {
 }
 
 std::string WebPageScraper::parse_url(std::string base, std::string href) {
-  if (base.empty() || href.empty()) {
-    std::cout << "ALKJFSALKJFLKJDSALKJFDSALKJFLKSADLKJFSALKJDFLKJSALKFLKSAFLKA"
-              << std::endl;
-    return "";
-  }
-
-  SoupURI *_base = soup_uri_new(("http://" + base).c_str());
+  SoupURI *_base = soup_uri_new((base).c_str());
   if (!SOUP_URI_IS_VALID(_base)) {
     std::cout << "BAAAAAD: " << base << std::endl;
+  }
+
+  if (href.find_first_of(":") > href.find_first_of("/#?")) {
+    std::cout << "WHAT THE FUCK: " << base << " " << href << std::endl;
+
+    SoupURI *_url = soup_uri_new(("http://" + href).c_str());
+    soup_uri_set_host(_url, soup_uri_get_host(_base));
+    std::cout << std::string(soup_uri_to_string(_url, FALSE)) << std::endl;
+    pthread_exit(NULL);
   }
   SoupURI *_url = href.find_first_of(":") < href.find_first_of("/#?")
                       ? soup_uri_new(href.c_str())
                       : soup_uri_new_with_base(_base, href.c_str());
 
-  // soup_uri_set_fragment(_url, "");
+  soup_uri_set_fragment(_url, NULL);
   if (_url == NULL) {
     std::cout << base << " -> " << href << base << std::endl;
     // return "";
