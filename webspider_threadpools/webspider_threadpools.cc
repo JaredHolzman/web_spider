@@ -18,7 +18,8 @@ void WebspiderThreadpools::CrawlWeb(std::string *root_webpage_address,
 
   pthread_t workers[max_threads];
 
-  tp_tsqueue->append(new Page(root_webpage_address, 0));
+  tp_tsqueue->append(
+                     new Page(root_webpage_address, new std::string("Root"), 0));
 
   // Create threads to crawl webpages
   for (long i = 0; i < max_threads; i++) {
@@ -33,18 +34,24 @@ void WebspiderThreadpools::CrawlWeb(std::string *root_webpage_address,
 
 void *WebspiderThreadpools::crawl_page(void *threadID) {
   while (!tp_tsqueue->isEmpty()) {
+    std::cout << "Entering while loop" << std::endl;
     Page *page = tp_tsqueue->remove();
+    std::cout << "Processing: " << *page->get_parent() << " -> "
+              << *page->get_href() << page->get_depth() + 1 << std::endl;
 
     std::vector<std::string *> linked_pages =
         tp_scraper->get_page_hrefs(*page->get_href());
     for (size_t i = 0; i < linked_pages.size(); i++) {
-      std::cout << *linked_pages[i] << std::endl;
+      std::cout << *linked_pages[i] << page->get_depth() + 1 << std::endl;
       int depth_next;
       if ((depth_next = page->get_depth() + 1) < *tp_max_depth) {
-        tp_tsqueue->append(new Page(linked_pages[i], depth_next));
+        tp_tsqueue->append(
+            new Page(linked_pages[i], page->get_href(), depth_next));
       }
+      std::cout << "End for" << std::endl;
     }
   }
+  std::cout << "EXITING" << std::endl;
   pthread_exit(threadID);
 }
 
