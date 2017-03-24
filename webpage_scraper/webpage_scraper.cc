@@ -19,14 +19,11 @@ WebPageScraper::WebPageScraper() {}
 std::vector<std::string *>
 WebPageScraper::get_page_hrefs(std::string webpage_address) {
   std::string webpage_html;
-  std::cout << "Getting " << webpage_address << " html." << std::endl;
   get_page_html(webpage_address, &webpage_html);
   if (webpage_html.empty()) {
-    std::cout << "Page blank" << std::endl;
     return std::vector<std::string *>();
   }
 
-  std::cout << "Parsing " << webpage_address << " html." << std::endl;
   std::vector<std::string *> page_hrefs =
       parse_html(webpage_html, webpage_address);
 
@@ -49,15 +46,15 @@ void WebPageScraper::get_page_html(std::string webpage_address,
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_to_string);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, webpage_html);
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 15L);
 
     /* Perform the request, res will get the return code */
-    std::cout << "Start fetching" << std::endl;
     res = curl_easy_perform(curl);
-    std::cout << "Done fetching" << std::endl;
     /* Check for errors */
-    if (res != CURLE_OK)
+    if (res != CURLE_OK) {
       std::wcerr << "curl_easy_perform() failed: " << curl_easy_strerror(res)
                  << " " << webpage_address.c_str() << std::endl;
+    }
 
     /* always cleanup */
     curl_easy_cleanup(curl);
