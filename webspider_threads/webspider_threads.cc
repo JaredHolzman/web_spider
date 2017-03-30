@@ -25,29 +25,29 @@ void WebspiderThreads::CrawlWeb(std::string *root_webpage_address,
   t_tsqueue->append(new Page(root_webpage_address, new std::string("ROOT"), 0));
   n = 1;
 
-  //May stop generating threads while more work is to be done
+  // May stop generating threads while more work is to be done
   while (!t_finished) {
-
-    // Reserve item for thread
-    pthread_mutex_lock(&t_lock);
-    while (n == 0) {
-      if (t_tsqueue->isEmpty()) {
-        for (size_t i = 0; i < workers.size(); i++) {
-          WebspiderThreads::join_workers(workers[i], true);
-        }
-        pthread_exit(NULL);
-      }
-      pthread_cond_wait(&t_items, &t_lock);
-    }
-    n--;
-    pthread_mutex_unlock(&t_lock);
-
     // If the max number of threads has been reached, join the first thread in
     // the list
     if (workers.size() == (size_t)max_threads) {
       WebspiderThreads::join_workers(workers.front(), false);
       workers.erase(workers.begin());
     }
+
+    // Reserve item for thread
+    // pthread_mutex_lock(&t_lock);
+    // while (n == 0) {
+    //   if (t_tsqueue->isEmpty()) {
+    //     for (size_t i = 0; i < workers.size(); i++) {
+    //       WebspiderThreads::join_workers(workers[i], true);
+    //     }
+    //     pthread_exit(NULL);
+    //   }
+    //   pthread_cond_wait(&t_items, &t_lock);
+    // }
+    // n--;
+    // pthread_mutex_unlock(&t_lock);
+
     pthread_t new_thread;
     pthread_create(&new_thread, NULL, crawl_page, (void *)(workers.size()));
     workers.push_back(new_thread);
@@ -63,20 +63,35 @@ void *WebspiderThreads::crawl_page(void *threadID) {
 
   std::vector<std::string *> linked_pages =
       t_scraper->get_page_hrefs(*page->get_href());
+
+  if (page == NULL) {
+    t_tsqueue->signal();
+    pthread_exit(threadID);
+  }
+
+  int depth_next;
   for (size_t i = 0; i < linked_pages.size(); i++) {
     std::cout << *linked_pages[i] << std::endl;
-    int depth_next;
-
     if ((depth_next = page->get_depth() + 1) < *t_max_depth) {
       t_tsqueue->append(
           new Page(linked_pages[i], page->get_href(), depth_next));
-
-      pthread_mutex_lock(&t_lock);
-      n++;
-      pthread_mutex_unlock(&t_lock);
+      // pthread_mutex_lock(&t_lock);
+      // n++;
+      // pthread_mutex_unlock(&t_lock);
     }
   }
-  pthread_cond_signal(&t_items);
+
+  if (depth_next >= *t_max_depth) {
+    pthread_mutex_lock(&t_lock);
+    if (!t_finished) {
+      t_finished = true;
+      t_tsqueue->setFinished();
+    }
+    t_tsqueue->signal();
+    pthread_mutex_unlock(&t_lock);
+  }
+
+  // pthread_cond_signal(&t_items);
   pthread_exit(threadID);
 }
 
