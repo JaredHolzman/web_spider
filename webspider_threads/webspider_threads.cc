@@ -6,6 +6,7 @@ int *t_max_depth;
 pthread_mutex_t t_lock;
 pthread_cond_t t_items;
 int n;
+bool t_finished;
 
 void WebspiderThreads::CrawlWeb(std::string *root_webpage_address,
                                 int max_threads, int _max_depth,
@@ -16,6 +17,7 @@ void WebspiderThreads::CrawlWeb(std::string *root_webpage_address,
   t_tsqueue = _tsqueue;
   t_scraper = _scraper;
   t_max_depth = new int(_max_depth);
+  t_finished = false;
   pthread_mutex_init(&t_lock, NULL);
 
   std::vector<pthread_t> workers;
@@ -23,7 +25,8 @@ void WebspiderThreads::CrawlWeb(std::string *root_webpage_address,
   t_tsqueue->append(new Page(root_webpage_address, new std::string("ROOT"), 0));
   n = 1;
 
-  while (!t_tsqueue->isEmpty()) {
+  //May stop generating threads while more work is to be done
+  while (!t_finished) {
 
     // Reserve item for thread
     pthread_mutex_lock(&t_lock);

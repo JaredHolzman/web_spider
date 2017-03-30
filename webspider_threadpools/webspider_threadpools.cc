@@ -4,6 +4,7 @@ ThreadsafeQueue *tp_tsqueue;
 WebPageScraper *tp_scraper;
 int *tp_max_depth;
 pthread_mutex_t tp_lock;
+bool tp_finished;
 
 void WebspiderThreadpools::CrawlWeb(std::string *root_webpage_address,
                                     int max_threads, int _max_depth,
@@ -15,6 +16,7 @@ void WebspiderThreadpools::CrawlWeb(std::string *root_webpage_address,
   tp_scraper = _scraper;
   tp_max_depth = new int(_max_depth);
   pthread_mutex_init(&tp_lock, NULL);
+  tp_finished = false;
 
   pthread_t workers[max_threads];
 
@@ -33,23 +35,38 @@ void WebspiderThreadpools::CrawlWeb(std::string *root_webpage_address,
 }
 
 void *WebspiderThreadpools::crawl_page(void *threadID) {
-  // Change this, threads might die even if there is still work to do
-  while (!tp_tsqueue->isEmpty()) {
+  while (!tp_finished) {
     Page *page = tp_tsqueue->remove();
-    // std::cout << "Processing: " << *page->get_parent() << " -> "
-    //           << *page->get_href() << page->get_depth() + 1 << std::endl;
+
+    if (page == NULL) {
+      break;
+    }
 
     std::vector<std::string *> linked_pages =
         tp_scraper->get_page_hrefs(*page->get_href());
+
+    int depth_next;
     for (size_t i = 0; i < linked_pages.size(); i++) {
-      std::cout << *linked_pages[i] << std::endl;
-      int depth_next;
+      std::cout << *linked_pages[i] << " " << tp_finished << std::endl;
       if ((depth_next = page->get_depth() + 1) < *tp_max_depth) {
         tp_tsqueue->append(
             new Page(linked_pages[i], page->get_href(), depth_next));
       }
     }
+
+    if (depth_next >= *tp_max_depth) {
+      break;
+    }
   }
+
+  pthread_mutex_lock(&tp_lock);
+  if (!tp_finished) {
+    tp_finished = true;
+    tp_tsqueue->setFinished();
+  }
+  tp_tsqueue->signal();
+  pthread_mutex_unlock(&tp_lock);
+
   pthread_exit(threadID);
 }
 

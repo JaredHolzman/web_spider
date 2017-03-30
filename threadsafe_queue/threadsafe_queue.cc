@@ -1,6 +1,6 @@
 #include "threadsafe_queue.h"
 
-ThreadsafeQueue::ThreadsafeQueue() : queue() {
+ThreadsafeQueue::ThreadsafeQueue() : queue(), finished(false) {
   pthread_mutex_init(&queue_lock, NULL);
   pthread_cond_init(&queue_empty, NULL);
 }
@@ -15,6 +15,10 @@ void ThreadsafeQueue::append(Page *page_href) {
 Page *ThreadsafeQueue::remove() {
   pthread_mutex_lock(&queue_lock);
   while (queue.empty()) {
+    if (finished) {
+      pthread_mutex_unlock(&queue_lock);
+      return NULL;
+    }
     pthread_cond_wait(&queue_empty, &queue_lock);
   }
 
@@ -26,3 +30,7 @@ Page *ThreadsafeQueue::remove() {
 }
 
 bool ThreadsafeQueue::isEmpty() { return queue.empty(); }
+
+void ThreadsafeQueue::setFinished() { finished = true; };
+
+void ThreadsafeQueue::signal() { pthread_cond_signal(&queue_empty); }
