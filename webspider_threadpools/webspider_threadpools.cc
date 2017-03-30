@@ -33,6 +33,7 @@ void WebspiderThreadpools::CrawlWeb(std::string *root_webpage_address,
 }
 
 void *WebspiderThreadpools::crawl_page(void *threadID) {
+  // Change this, threads might die even if there is still work to do
   while (!tp_tsqueue->isEmpty()) {
     Page *page = tp_tsqueue->remove();
     // std::cout << "Processing: " << *page->get_parent() << " -> "
@@ -41,7 +42,7 @@ void *WebspiderThreadpools::crawl_page(void *threadID) {
     std::vector<std::string *> linked_pages =
         tp_scraper->get_page_hrefs(*page->get_href());
     for (size_t i = 0; i < linked_pages.size(); i++) {
-      std::cout << *linked_pages[i] << page->get_depth() + 1 << std::endl;
+      std::cout << *linked_pages[i] << std::endl;
       int depth_next;
       if ((depth_next = page->get_depth() + 1) < *tp_max_depth) {
         tp_tsqueue->append(
