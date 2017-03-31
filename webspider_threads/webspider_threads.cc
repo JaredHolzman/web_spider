@@ -4,9 +4,10 @@ ThreadsafeQueue *t_tsqueue;
 WebPageScraper *t_scraper;
 int *t_max_depth;
 pthread_mutex_t t_lock;
-pthread_cond_t t_items;
-int n;
+pthread_cond_t t_thread_finished;
+int t_thread_number;
 bool t_finished;
+size_t t_finished_thread_id;
 
 void WebspiderThreads::CrawlWeb(std::string *root_webpage_address,
                                 int max_threads, int _max_depth,
@@ -18,37 +19,38 @@ void WebspiderThreads::CrawlWeb(std::string *root_webpage_address,
   t_scraper = _scraper;
   t_max_depth = new int(_max_depth);
   t_finished = false;
-  pthread_mutex_init(&t_lock, NULL);
+  t_thread_number = 0;
+  t_finished_thread_id = -1;
 
-  std::vector<pthread_t> workers;
+  pthread_mutex_init(&t_lock, NULL);
+  pthread_cond_init(&t_thread_finished, NULL);
+
+  std::vector<pthread_t> workers(max_threads);
+  pthread_t new_thread;
 
   t_tsqueue->append(new Page(root_webpage_address, new std::string("ROOT"), 0));
-  n = 1;
 
-  // May stop generating threads while more work is to be done
   while (!t_finished) {
-    // If the max number of threads has been reached, join the first thread in
-    // the list
+    // If the max number of threads has been reached, join a finished thread and
+    // create a new thread in its place
     if (workers.size() == (size_t)max_threads) {
-      WebspiderThreads::join_workers(workers.front(), false);
-      workers.erase(workers.begin());
+      size_t id;
+      pthread_mutex_lock(&t_lock);
+      while (t_finished_thread_id == -1) {
+        pthread_cond_wait(&t_thread_finished, &t_lock);
+      }
+      id = t_finished_thread_id;
+      t_finished_thread_id = -1;
+      pthread_cond_signal(&t_thread_finished);
+      pthread_mutex_unlock(&t_lock);
+
+      WebspiderThreads::join_workers(workers[id], false);
+      pthread_create(&new_thread, NULL, crawl_page, (void *)(id));
+      workers[id] = new_thread;
+    } else {
+
     }
 
-    // Reserve item for thread
-    // pthread_mutex_lock(&t_lock);
-    // while (n == 0) {
-    //   if (t_tsqueue->isEmpty()) {
-    //     for (size_t i = 0; i < workers.size(); i++) {
-    //       WebspiderThreads::join_workers(workers[i], true);
-    //     }
-    //     pthread_exit(NULL);
-    //   }
-    //   pthread_cond_wait(&t_items, &t_lock);
-    // }
-    // n--;
-    // pthread_mutex_unlock(&t_lock);
-
-    pthread_t new_thread;
     pthread_create(&new_thread, NULL, crawl_page, (void *)(workers.size()));
     workers.push_back(new_thread);
   }
@@ -59,15 +61,19 @@ void WebspiderThreads::CrawlWeb(std::string *root_webpage_address,
 }
 
 void *WebspiderThreads::crawl_page(void *threadID) {
-  Page *page = t_tsqueue->remove();
+  // pthread_mutex_lock(&t_lock);
+  // std::cout << threadID << std::endl;
+  // pthread_mutex_unlock(&t_lock);
 
-  std::vector<std::string *> linked_pages =
-      t_scraper->get_page_hrefs(*page->get_href());
+  Page *page = t_tsqueue->remove();
 
   if (page == NULL) {
     t_tsqueue->signal();
     pthread_exit(threadID);
   }
+
+  std::vector<std::string *> linked_pages =
+      t_scraper->get_page_hrefs(*page->get_href());
 
   int depth_next;
   for (size_t i = 0; i < linked_pages.size(); i++) {
@@ -75,23 +81,25 @@ void *WebspiderThreads::crawl_page(void *threadID) {
     if ((depth_next = page->get_depth() + 1) < *t_max_depth) {
       t_tsqueue->append(
           new Page(linked_pages[i], page->get_href(), depth_next));
-      // pthread_mutex_lock(&t_lock);
-      // n++;
-      // pthread_mutex_unlock(&t_lock);
     }
   }
 
+  pthread_mutex_lock(&t_lock);
   if (depth_next >= *t_max_depth) {
-    pthread_mutex_lock(&t_lock);
     if (!t_finished) {
       t_finished = true;
       t_tsqueue->setFinished();
     }
     t_tsqueue->signal();
-    pthread_mutex_unlock(&t_lock);
   }
 
-  // pthread_cond_signal(&t_items);
+  // while (t_finished_thread_id != -1) {
+  //   pthread_cond_wait(&t_thread_finished, &t_lock);
+  // }
+  // t_finished_thread_id = (size_t)threadID;
+  // pthread_cond_signal(&t_thread_finished);
+  pthread_mutex_unlock(&t_lock);
+
   pthread_exit(threadID);
 }
 
