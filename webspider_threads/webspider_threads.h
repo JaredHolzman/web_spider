@@ -6,6 +6,8 @@
 #include <iostream>
 #include <pthread.h>
 #include <string>
+#include <err.h>
+#include <string.h>
 
 namespace WebspiderThreads {
 void CrawlWeb(std::string *root_webpage_address, int _max_threads,

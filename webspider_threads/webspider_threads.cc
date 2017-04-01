@@ -25,7 +25,7 @@ void WebspiderThreads::CrawlWeb(std::string *root_webpage_address,
   pthread_mutex_init(&t_lock, NULL);
   pthread_cond_init(&t_thread_finished, NULL);
 
-  std::vector<pthread_t> workers(max_threads);
+  std::vector<pthread_t> workers;
   pthread_t new_thread;
 
   t_tsqueue->append(new Page(root_webpage_address, new std::string("ROOT"), 0));
@@ -33,23 +33,22 @@ void WebspiderThreads::CrawlWeb(std::string *root_webpage_address,
   while (!t_finished) {
     // If the max number of threads has been reached, join a finished thread and
     // create a new thread in its place
-    if (workers.size() == (size_t)max_threads) {
-      size_t id;
-      pthread_mutex_lock(&t_lock);
-      while (t_finished_thread_id == -1) {
-        pthread_cond_wait(&t_thread_finished, &t_lock);
-      }
-      id = t_finished_thread_id;
-      t_finished_thread_id = -1;
-      pthread_cond_signal(&t_thread_finished);
-      pthread_mutex_unlock(&t_lock);
+    // if (workers.size() == (size_t)max_threads) {
+    //   size_t id;
+    //   pthread_mutex_lock(&t_lock);
+    //   while (t_finished_thread_id == -1) {
+    //     pthread_cond_wait(&t_thread_finished, &t_lock);
+    //   }
+    //   id = t_finished_thread_id;
+    //   t_finished_thread_id = -1;
+    //   pthread_cond_signal(&t_thread_finished);
+    //   pthread_mutex_unlock(&t_lock);
 
-      WebspiderThreads::join_workers(workers[id], false);
-      pthread_create(&new_thread, NULL, crawl_page, (void *)(id));
-      workers[id] = new_thread;
-    } else {
-
-    }
+    //   WebspiderThreads::join_workers(workers[id], false);
+    //   pthread_create(&new_thread, NULL, crawl_page, (void *)(id));
+    //   workers[id] = new_thread;
+    // } else {
+    // }
 
     pthread_create(&new_thread, NULL, crawl_page, (void *)(workers.size()));
     workers.push_back(new_thread);
@@ -108,7 +107,7 @@ void WebspiderThreads::join_workers(pthread_t thread, bool verbose) {
   int rc = pthread_join(thread, &status);
 
   if (rc) {
-    printf("ERROR; return code from pthread_join() is %d\n", rc);
+    printf("ERROR; return code from pthread_join() is %s\n", strerror(rc));
     exit(-1);
   }
   if (verbose) {
