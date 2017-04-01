@@ -29,9 +29,8 @@ void WebspiderThreads::CrawlWeb(std::string *root_webpage_address,
   pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
   t_tsqueue->append(new Page(root_webpage_address, new std::string("ROOT"), 0));
-  t_num_threads--;
 
-  while (t_tsqueue->isEmpty() || !t_finished) {
+  while (!t_tsqueue->isEmpty() || !t_finished) {
     pthread_mutex_lock(&t_lock);
     // Max number of threads are currently running
     while (t_num_threads == 0) {
@@ -55,6 +54,10 @@ void *WebspiderThreads::crawl_page(void *threadID) {
 
   if (page == NULL) {
     t_tsqueue->signal();
+    pthread_mutex_lock(&t_lock);
+    t_num_threads++;
+    pthread_cond_signal(&t_max_threads_cond);
+    pthread_mutex_unlock(&t_lock);
     pthread_exit(threadID);
   }
 
