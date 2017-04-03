@@ -21,7 +21,7 @@ public:
   void signal();      // Wake a thread waiting on the member condition variable
 
 private:
-  std::vector<Page> queue;
+  std::vector<Page *> queue;
   std::mutex queue_mutex;              // Mutex
   std::condition_variable queue_empty_cv; // Condition indicating buffer is empty
   bool finished; // Boolean for when the queue is finished being used

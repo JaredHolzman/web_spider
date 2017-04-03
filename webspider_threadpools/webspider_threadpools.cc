@@ -3,7 +3,7 @@
 ThreadsafeQueue *tp_tsqueue;
 WebPageScraper *tp_scraper;
 int *tp_max_depth;
-pthread_mutex_t tp_lock;
+std::mutex tp_mutex;
 bool tp_finished;
 
 void WebspiderThreadpools::CrawlWeb(std::string *root_webpage_address,
@@ -15,26 +15,25 @@ void WebspiderThreadpools::CrawlWeb(std::string *root_webpage_address,
   tp_tsqueue = _tsqueue;
   tp_scraper = _scraper;
   tp_max_depth = new int(_max_depth);
-  pthread_mutex_init(&tp_lock, NULL);
   tp_finished = false;
 
-  pthread_t workers[max_threads];
+  std::thread workers[max_threads];
 
   tp_tsqueue->append(
       new Page(root_webpage_address, new std::string("Root"), 0));
 
   // Create threads to crawl webpages
-  for (long i = 0; i < max_threads; i++) {
-    pthread_create(&workers[i], NULL, crawl_page, (void *)i);
+  for (size_t i = 0; i < max_threads; i++) {
+    workers[i] = std::thread(crawl_page, i);
   }
 
   // Wait for threads to complete
-  for (int i = 0; i < max_threads; i++) {
+  for (size_t i = 0; i < max_threads; i++) {
     WebspiderThreadpools::join_workers(workers[i], true);
   }
 }
 
-void *WebspiderThreadpools::crawl_page(void *threadID) {
+void *WebspiderThreadpools::crawl_page(size_t threadID) {
   while (!tp_finished) {
     Page *page = tp_tsqueue->remove();
 
@@ -59,26 +58,24 @@ void *WebspiderThreadpools::crawl_page(void *threadID) {
     }
   }
 
-  pthread_mutex_lock(&tp_lock);
+  std::unique_lock<std::mutex> lock(tp_mutex);
   if (!tp_finished) {
     tp_finished = true;
     tp_tsqueue->setFinished();
   }
+  lock.unlock();
   tp_tsqueue->signal();
-  pthread_mutex_unlock(&tp_lock);
-
-  pthread_exit(threadID);
 }
 
-void WebspiderThreadpools::join_workers(pthread_t thread, bool verbose) {
-  void *status;
-  int rc = pthread_join(thread, &status);
-
-  if (rc) {
-    printf("ERROR; return code from pthread_join() is %d\n", rc);
-    exit(-1);
-  }
-  if (verbose) {
-    printf("Spider: completed join with thread %ld\n", (long)status);
+void WebspiderThreadpools::join_workers(std::thread &thread, bool verbose) {
+  try {
+    thread.join();
+    if (verbose) {
+      std::cout << "Spider: completed join with thread " << thread.get_id()
+                << std::endl;
+    }
+  } catch (const std::system_error &e) {
+    std::cout << "ERROR: Caught system_error with code " << e.code()
+              << " meaning " << e.what() << '\n';
   }
 }

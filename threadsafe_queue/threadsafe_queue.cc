@@ -2,7 +2,7 @@
 
 ThreadsafeQueue::ThreadsafeQueue()
     : queue(), queue_mutex(), queue_empty_cv(), finished(false) {}
-ThreadsafeQueue::~ThreadsafeQueue(){}
+ThreadsafeQueue::~ThreadsafeQueue() {}
 
 void ThreadsafeQueue::append(Page *page_href) {
   std::unique_lock<std::mutex> lock(queue_mutex);
