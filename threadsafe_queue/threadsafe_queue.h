@@ -9,19 +9,20 @@
 #include <stdlib.h>
 #include <vector>
 
+template <class T>
 class ThreadsafeQueue {
 public:
   // Constructor to initialize locks, conditional variables, and vector
   ThreadsafeQueue();
   ~ThreadsafeQueue();
-  void append(Page *page);
-  Page *remove();
+  void append(T *page);
+  T *remove();
   bool isEmpty();
   void setFinished(); // Mark the queue that no more data will be added
   void signal();      // Wake a thread waiting on the member condition variable
 
 private:
-  std::vector<Page *> queue;
+  std::vector<T *> queue;
   std::mutex queue_mutex; // Mutex
   std::condition_variable
       queue_empty_cv; // Condition indicating buffer is empty
