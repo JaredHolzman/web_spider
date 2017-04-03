@@ -10,7 +10,7 @@ WebspiderThreadpools::WebspiderThreadpools(
 
 WebspiderThreadpools::~WebspiderThreadpools(){}
 
-void WebspiderThreadpools::CrawlWeb() {
+void WebspiderThreadpools::crawl_web() {
   std::thread workers[max_threads];
 
   tsqueue->append(new Page(&root_webpage_address, new std::string("Root"), 0));
@@ -62,9 +62,10 @@ void WebspiderThreadpools::crawl_page() {
 
 void WebspiderThreadpools::join_workers(std::thread &thread, bool verbose) {
   try {
+    std::thread::id tid = thread.get_id();
     thread.join();
     if (verbose) {
-      std::cout << "Spider: completed join with thread " << thread.get_id()
+      std::cout << "Spider: completed join with thread " << tid
                 << std::endl;
     }
   } catch (const std::system_error &e) {

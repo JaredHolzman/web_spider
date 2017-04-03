@@ -18,7 +18,7 @@ public:
                        std::unique_ptr<WebPageScraper> scraper);
 
   ~WebspiderThreadpools();
-  void CrawlWeb();
+  void crawl_web();
 
 private:
   void crawl_page();
