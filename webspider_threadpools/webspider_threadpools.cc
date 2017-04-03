@@ -45,10 +45,10 @@ void *WebspiderThreadpools::crawl_page(void *threadID) {
     std::vector<std::string *> linked_pages =
         tp_scraper->get_page_hrefs(*page->get_href());
 
-    int depth_next;
+    int depth_next = depth_next = page->get_depth() + 1;
     for (size_t i = 0; i < linked_pages.size(); i++) {
-      std::cout << *linked_pages[i] << " " << tp_finished << std::endl;
-      if ((depth_next = page->get_depth() + 1) < *tp_max_depth) {
+      std::cout << *linked_pages[i] << " " << depth_next << std::endl;
+      if (depth_next < *tp_max_depth) {
         tp_tsqueue->append(
             new Page(linked_pages[i], page->get_href(), depth_next));
       }
