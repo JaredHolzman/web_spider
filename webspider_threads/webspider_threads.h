@@ -13,10 +13,12 @@
 #include <system_error>
 #include <thread>
 
+
 class WebspiderThreads {
 public:
   WebspiderThreads(std::string root_webpage_address, int max_threads,
-                   int max_depth, std::unique_ptr<ThreadsafeQueue> tsqueue,
+                   int max_depth,
+                   std::unique_ptr<ThreadsafeQueue<Page>> tsqueue,
                    std::unique_ptr<WebPageScraper> scraper);
 
   ~WebspiderThreads();
@@ -29,7 +31,7 @@ private:
   std::string root_webpage_address;
   int max_threads;
   int max_depth;
-  std::unique_ptr<ThreadsafeQueue> tsqueue;
+  std::unique_ptr<ThreadsafeQueue<Page>> tsqueue;
   std::unique_ptr<WebPageScraper> scraper;
   std::mutex finished_mutex;
   bool is_finished;

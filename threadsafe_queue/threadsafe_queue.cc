@@ -37,3 +37,5 @@ template <class T> void ThreadsafeQueue<T>::setFinished() { finished = true; };
 template <class T> void ThreadsafeQueue<T>::signal() {
   queue_empty_cv.notify_one();
 }
+
+template class ThreadsafeQueue<Page>;

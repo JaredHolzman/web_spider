@@ -9,8 +9,7 @@
 #include <stdlib.h>
 #include <vector>
 
-template <class T>
-class ThreadsafeQueue {
+template <class T> class ThreadsafeQueue {
 public:
   // Constructor to initialize locks, conditional variables, and vector
   ThreadsafeQueue();
