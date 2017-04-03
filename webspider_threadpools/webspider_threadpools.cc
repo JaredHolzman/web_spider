@@ -8,7 +8,7 @@ WebspiderThreadpools::WebspiderThreadpools(
       max_depth(max_depth), tsqueue(std::move(tsqueue)),
       scraper(std::move(scraper)), finished_mutex(), is_finished(false) {}
 
-WebspiderThreadpools::~WebspiderThreadpools(){}
+WebspiderThreadpools::~WebspiderThreadpools() {}
 
 void WebspiderThreadpools::crawl_web() {
   std::thread workers[max_threads];
@@ -22,7 +22,7 @@ void WebspiderThreadpools::crawl_web() {
 
   // Wait for threads to complete
   for (size_t i = 0; i < max_threads; i++) {
-    WebspiderThreadpools::join_workers(workers[i], true);
+    WebspiderThreadpools::join_workers(workers[i], false);
   }
 }
 
@@ -65,8 +65,7 @@ void WebspiderThreadpools::join_workers(std::thread &thread, bool verbose) {
     std::thread::id tid = thread.get_id();
     thread.join();
     if (verbose) {
-      std::cout << "Spider: completed join with thread " << tid
-                << std::endl;
+      std::cout << "Spider: completed join with thread " << tid << std::endl;
     }
   } catch (const std::system_error &e) {
     std::cout << "ERROR: Caught system_error with code " << e.code()

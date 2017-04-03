@@ -22,9 +22,10 @@ public:
 
 private:
   std::vector<Page *> queue;
-  std::mutex queue_mutex;              // Mutex
-  std::condition_variable queue_empty_cv; // Condition indicating buffer is empty
-  bool finished; // Boolean for when the queue is finished being used
+  std::mutex queue_mutex; // Mutex
+  std::condition_variable
+      queue_empty_cv; // Condition indicating buffer is empty
+  bool finished;      // Boolean for when the queue is finished being used
 };
 
 #endif

@@ -3,18 +3,38 @@
 
 #include "../threadsafe_queue/threadsafe_queue.h"
 #include "../webpage_scraper/webpage_scraper.h"
-#include <iostream>
-#include <pthread.h>
-#include <string>
+#include <condition_variable>
 #include <err.h>
+#include <iostream>
+#include <memory>
+#include <mutex>
 #include <string.h>
+#include <string>
+#include <system_error>
+#include <thread>
 
-namespace WebspiderThreads {
-void CrawlWeb(std::string *root_webpage_address, int _max_threads,
-              int max_depth, ThreadsafeQueue *_tsqueue,
-              WebPageScraper *_scraper);
-void *crawl_page(void *threadID);
-  void join_workers(pthread_t thread, bool verbose);
-}
+class WebspiderThreads {
+public:
+  WebspiderThreads(std::string root_webpage_address, int max_threads,
+                   int max_depth, std::unique_ptr<ThreadsafeQueue> tsqueue,
+                   std::unique_ptr<WebPageScraper> scraper);
+
+  ~WebspiderThreads();
+
+  void crawl_web();
+
+private:
+  void crawl_page();
+
+  std::string root_webpage_address;
+  int max_threads;
+  int max_depth;
+  std::unique_ptr<ThreadsafeQueue> tsqueue;
+  std::unique_ptr<WebPageScraper> scraper;
+  std::mutex finished_mutex;
+  bool is_finished;
+  std::condition_variable avail_threads_cv;
+  int avail_threads;
+};
 
 #endif
