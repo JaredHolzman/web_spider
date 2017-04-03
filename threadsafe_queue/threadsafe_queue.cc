@@ -1,30 +1,29 @@
 #include "threadsafe_queue.h"
 
-ThreadsafeQueue::ThreadsafeQueue() : queue(), finished(false) {
-  pthread_mutex_init(&queue_lock, NULL);
-  pthread_cond_init(&queue_empty, NULL);
-}
+ThreadsafeQueue::ThreadsafeQueue()
+    : queue(), queue_mutex(), queue_empty_cv(), finished(false) {}
+ThreadsafeQueue::~ThreadsafeQueue(){}
 
 void ThreadsafeQueue::append(Page *page_href) {
-  pthread_mutex_lock(&queue_lock);
+  std::unique_lock<std::mutex> lock(queue_mutex);
   queue.push_back(page_href);
-  pthread_cond_signal(&queue_empty);
-  pthread_mutex_unlock(&queue_lock);
+  lock.unlock();
+  queue_empty_cv.notify_one();
 }
 
 Page *ThreadsafeQueue::remove() {
-  pthread_mutex_lock(&queue_lock);
+  std::unique_lock<std::mutex> lock(queue_mutex);
   while (queue.empty()) {
     if (finished) {
-      pthread_mutex_unlock(&queue_lock);
+      lock.unlock();
       return NULL;
     }
-    pthread_cond_wait(&queue_empty, &queue_lock);
+    queue_empty_cv.wait(lock);
   }
 
   Page *head = queue.front();
   queue.erase(queue.begin());
-  pthread_mutex_unlock(&queue_lock);
+  lock.unlock();
 
   return head;
 }
@@ -33,4 +32,4 @@ bool ThreadsafeQueue::isEmpty() { return queue.empty(); }
 
 void ThreadsafeQueue::setFinished() { finished = true; };
 
-void ThreadsafeQueue::signal() { pthread_cond_signal(&queue_empty); }
+void ThreadsafeQueue::signal() { queue_empty_cv.notify_one(); }
