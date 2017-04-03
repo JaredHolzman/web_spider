@@ -4,29 +4,30 @@ WTDIR = webspider_threads
 WPDIR = webspider_threadpools
 
 CC = g++
-INCLUDE = -I/usr/include/libsoup-2.4 -I/usr/include/libxml2 -I/usr/include/glib-2.0 -I/usr/lib/x86_64-linux-gnu/glib-2.0/include
-CFLAGS = -std=c++11 $(INCLUDE) -lpthread -lgumbo -lcurl -lsoup-2.4 -lgio-2.0 -lgobject-2.0 -lglib-2.0
+CPPFLAGS = `pkg-config gumbo libcurl libsoup-2.4 --cflags`
+CPPLIBS = `pkg-config gumbo libcurl libsoup-2.4 --libs`
+ALLFLAGS = -std=c++11 -Wall -Wextra $(CPPFLAGS) $(CPPLIBS)
 OBJS = page.o threadsafe_queue.o webpage_scraper.o webspider_threadpools.o webspider_threads.o
 
 all: main
 
 main: main.cc $(OBJS)
-	$(CC) $(OBJS) main.cc -o spider $(CFLAGS)
+	$(CC) $(OBJS) main.cc -o spider $(ALLFLAGS)
 
 webspider_threadpools.o: $(WPDIR)/webspider_threadpools.cc $(WPDIR)/webspider_threadpools.h
-	$(CC) -c $(WPDIR)/webspider_threadpools.cc $(CFLAGS)
+	$(CC) -c $(WPDIR)/webspider_threadpools.cc $(ALLFLAGS)
 
 webspider_threads.o: $(WTDIR)/webspider_threads.cc $(WTDIR)/webspider_threads.h
-	$(CC) -c $(WTDIR)/webspider_threads.cc $(CFLAGS)
+	$(CC) -c $(WTDIR)/webspider_threads.cc $(ALLFLAGS)
 
 threadsafe_queue.o: $(TQDIR)/threadsafe_queue.cc $(TQDIR)/threadsafe_queue.h
-	$(CC) -c $(TQDIR)/threadsafe_queue.cc $(CFLAGS)
+	$(CC) -c $(TQDIR)/threadsafe_queue.cc $(ALLFLAGS)
 
 page.o: $(TQDIR)/page.cc $(TQDIR)/page.h
-	$(CC) -c $(TQDIR)/page.cc $(CFLAGS)
+	$(CC) -c $(TQDIR)/page.cc $(ALLFLAGS)
 
 webpage_scraper.o: $(WSDIR)/webpage_scraper.cc $(WSDIR)/webpage_scraper.h
-	$(CC) -c $(WSDIR)/webpage_scraper.cc $(CFLAGS)
+	$(CC) -c $(WSDIR)/webpage_scraper.cc $(ALLFLAGS)
 
 clean:
 	rm -f *.o

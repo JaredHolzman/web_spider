@@ -25,4 +25,5 @@ For now, this will just print out hrefs found as it explores up to `max-depth`.
 ## Dependencies
 * libcurl
 * gumbo-parser
+* libsoup-2.4
 
