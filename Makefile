@@ -7,7 +7,7 @@ CC = g++
 CPPFLAGS = `pkg-config gumbo libcurl libsoup-2.4 --cflags`
 CPPLIBS = `pkg-config gumbo libcurl libsoup-2.4 --libs`
 ALLFLAGS = -std=c++11 -Wall -Wextra $(CPPFLAGS) $(CPPLIBS)
-OBJS = page.o threadsafe_queue.o webpage_scraper.o webspider_threadpools.o webspider_threads.o
+OBJS = page.o threadsafe_exqueue.o threadsafe_queue.o webpage_scraper.o webspider_threadpools.o webspider_threads.o
 
 all: main
 
@@ -19,6 +19,9 @@ webspider_threadpools.o: $(WPDIR)/webspider_threadpools.cc $(WPDIR)/webspider_th
 
 webspider_threads.o: $(WTDIR)/webspider_threads.cc $(WTDIR)/webspider_threads.h
 	$(CC) -c $(WTDIR)/webspider_threads.cc $(ALLFLAGS)
+
+threadsafe_exqueue.o: $(TQDIR)/threadsafe_exqueue.cc $(TQDIR)/threadsafe_exqueue.h
+	$(CC) -c $(TQDIR)/threadsafe_exqueue.cc $(ALLFLAGS)
 
 threadsafe_queue.o: $(TQDIR)/threadsafe_queue.cc $(TQDIR)/threadsafe_queue.h
 	$(CC) -c $(TQDIR)/threadsafe_queue.cc $(ALLFLAGS)

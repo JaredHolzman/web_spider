@@ -42,13 +42,13 @@ void WebspiderThreads::crawl_page() {
   }
 
   std::vector<std::string *> linked_pages =
-      scraper->get_page_hrefs(*page->get_href());
+      scraper->get_page_hrefs(*page->page_href);
 
-  int depth_next = depth_next = page->get_depth() + 1;
+  int depth_next = page->depth + 1;
   for (size_t i = 0; i < linked_pages.size(); i++) {
     std::cout << *linked_pages[i] << " " << depth_next << std::endl;
     if (depth_next < max_depth) {
-      tsqueue->append(new Page(linked_pages[i], page->get_href(), depth_next));
+      tsqueue->append(new Page(linked_pages[i], page->page_href, depth_next));
     }
   }
 
