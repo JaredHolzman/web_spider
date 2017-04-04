@@ -9,7 +9,10 @@ CPPLIBS = `pkg-config gumbo libcurl libsoup-2.4 --libs`
 ALLFLAGS = -std=c++11 -Wall -Wextra $(CPPFLAGS) $(CPPLIBS)
 OBJS = threadsafe_exqueue.o threadsafe_queue.o webpage_scraper.o webspider_threadpools.o webspider_threads.o
 
-all: main
+all: main experiments
+
+experiments: experiments.cc $(OBJS)
+	$(CC) $(OBJS) experiments.cc -o experiments $(ALLFLAGS)
 
 main: main.cc $(OBJS)
 	$(CC) $(OBJS) main.cc -o spider $(ALLFLAGS)
@@ -32,3 +35,4 @@ webpage_scraper.o: $(WSDIR)/webpage_scraper.cc $(WSDIR)/webpage_scraper.h
 clean:
 	rm -f *.o
 	rm -f spider
+	rm -f experiments
