@@ -1,7 +1,7 @@
 #include "webspider_threads.h"
 
 WebspiderThreads::WebspiderThreads(
-    std::string root_webpage_address, int max_threads, int max_depth,
+    std::string root_webpage_address, size_t max_threads, int max_depth,
     std::unique_ptr<ThreadsafeQueue<Page>> tsqueue,
     std::unique_ptr<WebPageScraper> scraper)
     : root_webpage_address(root_webpage_address), max_threads(max_threads),

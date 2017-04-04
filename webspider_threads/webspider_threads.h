@@ -16,7 +16,7 @@
 
 class WebspiderThreads {
 public:
-  WebspiderThreads(std::string root_webpage_address, int max_threads,
+  WebspiderThreads(std::string root_webpage_address, size_t max_threads,
                    int max_depth,
                    std::unique_ptr<ThreadsafeQueue<Page>> tsqueue,
                    std::unique_ptr<WebPageScraper> scraper);
@@ -29,14 +29,14 @@ private:
   void crawl_page();
 
   std::string root_webpage_address;
-  int max_threads;
+  size_t max_threads;
   int max_depth;
   std::unique_ptr<ThreadsafeQueue<Page>> tsqueue;
   std::unique_ptr<WebPageScraper> scraper;
   std::mutex finished_mutex;
   bool is_finished;
   std::condition_variable avail_threads_cv;
-  int avail_threads;
+  size_t avail_threads;
 };
 
 #endif
