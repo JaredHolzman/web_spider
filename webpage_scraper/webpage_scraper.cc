@@ -47,6 +47,7 @@ void WebPageScraper::get_page_html(std::string webpage_address,
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_to_string);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, webpage_html);
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, 15L);
+    curl_easy_setopt(curl, CURLOPT_DNS_CACHE_TIMEOUT, -1L);
 
     /* Perform the request, res will get the return code */
     res = curl_easy_perform(curl);
@@ -118,5 +119,9 @@ std::string WebPageScraper::parse_url(std::string base, std::string href) {
   soup_uri_set_query(_url, NULL);
   std::string url(soup_uri_to_string(_url, FALSE));
   soup_uri_free(_url);
+
+  if (url.substr(url.length() - 4, std::string::npos) == ".pdf") {
+    return "";
+  }
   return url;
 }
