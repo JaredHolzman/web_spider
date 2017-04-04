@@ -13,7 +13,7 @@ int main(int argc, char *argv[]) {
   if (strcmp(argv[4], "t") == 0) {
     WebspiderThreads t(
         std::string(argv[1]), atoi(argv[2]), atoi(argv[3]),
-        std::unique_ptr<ThreadsafeQueue<Page>>(new ThreadsafeQueue<Page>()),
+        std::unique_ptr<ThreadsafeExQueue<Page>>(new ThreadsafeExQueue<Page>()),
         std::unique_ptr<WebPageScraper>(new WebPageScraper()));
     t.crawl_web();
   } else if (strcmp(argv[4], "p") == 0) {
