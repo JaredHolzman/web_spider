@@ -116,5 +116,7 @@ std::string WebPageScraper::parse_url(std::string base, std::string href) {
 
   soup_uri_set_fragment(_url, NULL);
   soup_uri_set_query(_url, NULL);
-  return std::string(soup_uri_to_string(_url, FALSE));
+  std::string url(soup_uri_to_string(_url, FALSE));
+  soup_uri_free(_url);
+  return url;
 }
