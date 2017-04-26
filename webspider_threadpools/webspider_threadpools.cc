@@ -29,6 +29,7 @@ void WebspiderThreadpools::crawl_web() {
 void WebspiderThreadpools::crawl_page() {
   while (!is_finished) {
     Page *page = tsqueue->remove();
+    std::cout << *(page->page_href) << std::endl;
 
     if (page == NULL) {
       break;
@@ -39,7 +40,7 @@ void WebspiderThreadpools::crawl_page() {
 
     int depth_next = page->depth + 1;
     for (size_t i = 0; i < linked_pages.size(); i++) {
-      std::cout << *linked_pages[i] << " " << depth_next << std::endl;
+      // std::cout << *linked_pages[i] << " " << depth_next << std::endl;
       if (depth_next < max_depth) {
         tsqueue->append(new Page(linked_pages[i], page->page_href, depth_next));
       }

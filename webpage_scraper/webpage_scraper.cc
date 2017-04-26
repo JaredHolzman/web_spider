@@ -35,7 +35,7 @@ HTMLScraper::get_page_hrefs(std::string webpage_address) {
    Includes response headers as well for now for debugging.
 **/
 void HTMLScraper::get_page_html(std::string webpage_address,
-                                   std::string *webpage_html) {
+                                std::string *webpage_html) {
   CURL *curl;
   CURLcode res;
   std::string pagedata;
@@ -49,10 +49,7 @@ void HTMLScraper::get_page_html(std::string webpage_address,
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, 15L);
     curl_easy_setopt(curl, CURLOPT_DNS_CACHE_TIMEOUT, -1L);
 
-    for (size_t tries = 0;
-         (res = curl_easy_perform(curl)) != CURLE_OK && tries < 3; tries++) {
-      // std::wcerr << "Retrying: " << webpage_address.c_str() << std::endl;
-    }
+    res = curl_easy_perform(curl);
 
     /* Check for errors */
     if (res != CURLE_OK) {
@@ -115,6 +112,12 @@ std::string HTMLScraper::parse_url(std::string base, std::string href) {
                       : _url = soup_uri_new(href.c_str());
 
   if (!SOUP_URI_VALID_FOR_HTTP(_url)) {
+    return "";
+  }
+
+  // Filter out non-umass urls, hack
+  std::string host = std::string(soup_uri_get_host(_url));
+  if (host != "umass.edu" && host != "www.umass.edu") {
     return "";
   }
 
