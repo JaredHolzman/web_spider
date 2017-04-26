@@ -1,18 +1,23 @@
 #include "threadsafe_exqueue.h"
 
-template <class T> ThreadsafeExQueue<T>::ThreadsafeExQueue() : exclude_set() {}
+template <class T>
+ThreadsafeExQueue<T>::ThreadsafeExQueue() : exclude_set(), set_mutex() {}
 
 template <class T> ThreadsafeExQueue<T>::~ThreadsafeExQueue() {}
 
 template <class T> void ThreadsafeExQueue<T>::append(T *page_href) {
-  std::unique_lock<std::mutex> lock(ThreadsafeQueue<T>::queue_mutex);
-  if(exclude_set.count(*page_href)){
-    lock.unlock();
+  std::unique_lock<std::mutex> set_lock(ThreadsafeQueue<T>::queue_mutex);
+  if (exclude_set.count(*page_href)) {
+    set_lock.unlock();
+    delete page_href;
     return;
   }
   exclude_set.insert(*page_href);
+  set_lock.unlock();
+
+  std::unique_lock<std::mutex> q_lock(ThreadsafeQueue<T>::queue_mutex);
   ThreadsafeQueue<T>::queue.push_back(page_href);
-  lock.unlock();
+  q_lock.unlock();
   ThreadsafeQueue<T>::queue_empty_cv.notify_one();
 }
 

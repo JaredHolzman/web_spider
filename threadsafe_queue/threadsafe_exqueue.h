@@ -7,6 +7,7 @@
 template <class T> class ThreadsafeExQueue : public ThreadsafeQueue<T> {
 private:
   std::unordered_set<T> exclude_set;
+  std::mutex set_mutex; // Mutex
 
 public:
   // Constructor to initialize locks, conditional variables, and vector
