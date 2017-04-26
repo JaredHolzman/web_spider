@@ -15,7 +15,7 @@ class WebspiderThreadpools {
 public:
   WebspiderThreadpools(std::string root_webpage_address, size_t max_threads,
                        int max_depth, std::unique_ptr<ThreadsafeQueue<Page>> tsqueue,
-                       std::unique_ptr<WebPageScraper> scraper);
+                       std::unique_ptr<HTMLScraper> scraper);
 
   ~WebspiderThreadpools();
 
@@ -29,7 +29,7 @@ private:
   size_t max_threads;
   int max_depth;
   std::unique_ptr<ThreadsafeQueue<Page>> tsqueue;
-  std::unique_ptr<WebPageScraper> scraper;
+  std::unique_ptr<HTMLScraper> scraper;
   std::mutex finished_mutex;
   bool is_finished;
 };

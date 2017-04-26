@@ -3,7 +3,7 @@
 WebspiderThreads::WebspiderThreads(
     std::string root_webpage_address, size_t max_threads, int max_depth,
     std::unique_ptr<ThreadsafeQueue<Page>> tsqueue,
-    std::unique_ptr<WebPageScraper> scraper)
+    std::unique_ptr<HTMLScraper> scraper)
     : root_webpage_address(root_webpage_address), max_threads(max_threads),
       max_depth(max_depth), tsqueue(std::move(tsqueue)),
       scraper(std::move(scraper)), finished_mutex(), is_finished(false),

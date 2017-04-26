@@ -14,13 +14,13 @@ int main(int argc, char *argv[]) {
     WebspiderThreads t(
         std::string(argv[1]), atoi(argv[2]), atoi(argv[3]),
         std::unique_ptr<ThreadsafeExQueue<Page>>(new ThreadsafeExQueue<Page>()),
-        std::unique_ptr<WebPageScraper>(new WebPageScraper()));
+        std::unique_ptr<HTMLScraper>(new HTMLScraper()));
     t.crawl_web();
   } else if (strcmp(argv[4], "p") == 0) {
     WebspiderThreadpools t(
         std::string(argv[1]), atoi(argv[2]), atoi(argv[3]),
         std::unique_ptr<ThreadsafeExQueue<Page>>(new ThreadsafeExQueue<Page>()),
-        std::unique_ptr<WebPageScraper>(new WebPageScraper()));
+        std::unique_ptr<HTMLScraper>(new HTMLScraper()));
     t.crawl_web();
   }
 }

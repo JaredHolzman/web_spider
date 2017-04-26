@@ -35,7 +35,7 @@ int main() {
           std::string("www.umass.edu"), max_threads, 4,
           std::unique_ptr<ThreadsafeExQueue<Page>>(
               new ThreadsafeExQueue<Page>()),
-          std::unique_ptr<WebPageScraper>(new WebPageScraper()));
+          std::unique_ptr<HTMLScraper>(new HTMLScraper()));
 
       double start_time = GetMonotonicTime();
       t.crawl_web();

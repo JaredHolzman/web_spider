@@ -10,14 +10,14 @@ size_t curl_to_string(void *ptr, size_t size, size_t nmemb, void *data) {
   return size * nmemb;
 }
 
-WebPageScraper::WebPageScraper() {}
+HTMLScraper::HTMLScraper() {}
 
 /**
    Takes in webpage address and returns a vector of string pointers of all
    hrefs on that page.
  **/
 std::vector<std::string *>
-WebPageScraper::get_page_hrefs(std::string webpage_address) {
+HTMLScraper::get_page_hrefs(std::string webpage_address) {
   std::string webpage_html;
   get_page_html(webpage_address, &webpage_html);
   if (webpage_html.empty()) {
@@ -34,7 +34,7 @@ WebPageScraper::get_page_hrefs(std::string webpage_address) {
    Takes in a webpage address and returns a string of all HTML for that page.
    Includes response headers as well for now for debugging.
 **/
-void WebPageScraper::get_page_html(std::string webpage_address,
+void HTMLScraper::get_page_html(std::string webpage_address,
                                    std::string *webpage_html) {
   CURL *curl;
   CURLcode res;
@@ -49,8 +49,11 @@ void WebPageScraper::get_page_html(std::string webpage_address,
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, 15L);
     curl_easy_setopt(curl, CURLOPT_DNS_CACHE_TIMEOUT, -1L);
 
-    /* Perform the request, res will get the return code */
-    res = curl_easy_perform(curl);
+    for (size_t tries = 0;
+         (res = curl_easy_perform(curl)) != CURLE_OK && tries < 3; tries++) {
+      // std::wcerr << "Retrying: " << webpage_address.c_str() << std::endl;
+    }
+
     /* Check for errors */
     if (res != CURLE_OK) {
       std::wcerr << "curl_easy_perform() failed: " << curl_easy_strerror(res)
@@ -68,7 +71,7 @@ void WebPageScraper::get_page_html(std::string webpage_address,
    Returns vector of string pointers for each href found.
 **/
 std::vector<std::string *>
-WebPageScraper::parse_html(std::string page_html, std::string webpage_address) {
+HTMLScraper::parse_html(std::string page_html, std::string webpage_address) {
   std::vector<std::string *> page_hrefs;
   std::vector<GumboNode *> nodes;
 
@@ -104,7 +107,7 @@ WebPageScraper::parse_html(std::string page_html, std::string webpage_address) {
   return page_hrefs;
 }
 
-std::string WebPageScraper::parse_url(std::string base, std::string href) {
+std::string HTMLScraper::parse_url(std::string base, std::string href) {
 
   SoupURI *_base = soup_uri_new((base).c_str());
   SoupURI *_url = href.find_first_of(":") > href.find_first_of("/#?")

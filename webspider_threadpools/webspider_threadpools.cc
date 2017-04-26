@@ -3,7 +3,7 @@
 WebspiderThreadpools::WebspiderThreadpools(
     std::string root_webpage_address, size_t max_threads, int max_depth,
     std::unique_ptr<ThreadsafeQueue<Page>> tsqueue,
-    std::unique_ptr<WebPageScraper> scraper)
+    std::unique_ptr<HTMLScraper> scraper)
     : root_webpage_address(root_webpage_address), max_threads(max_threads),
       max_depth(max_depth), tsqueue(std::move(tsqueue)),
       scraper(std::move(scraper)), finished_mutex(), is_finished(false) {}
@@ -39,7 +39,7 @@ void WebspiderThreadpools::crawl_page() {
 
     int depth_next = page->depth + 1;
     for (size_t i = 0; i < linked_pages.size(); i++) {
-      // std::cout << *linked_pages[i] << " " << depth_next << std::endl;
+      std::cout << *linked_pages[i] << " " << depth_next << std::endl;
       if (depth_next < max_depth) {
         tsqueue->append(new Page(linked_pages[i], page->page_href, depth_next));
       }
