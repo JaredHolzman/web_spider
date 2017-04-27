@@ -29,6 +29,7 @@ void WebspiderThreadpools::crawl_web() {
 void WebspiderThreadpools::crawl_page() {
   while (!is_finished) {
     Page *page = tsqueue->remove();
+    // std::cout << *(page->page_href) << " " << std::endl;
 
     if (page == NULL) {
       break;
