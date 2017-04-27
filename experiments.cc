@@ -24,17 +24,18 @@ int main() {
   std::ofstream output;
   output.open("output.txt", std::ios::app);
 
-  for (size_t max_threads = 1; max_threads < 50; max_threads ++) {
+  for (size_t max_threads = 1; max_threads < 50; max_threads++) {
 
     output << max_threads;
 
     for (size_t trials = 0; trials < 20; trials++) {
+      const std::string &curl_log = "curl_log_" + std::to_string(max_threads) +
+                                    "_" + std::to_string(trials);
       double delta = 0.0;
-      WebspiderThreadpools t(
-          std::string("www.umass.edu"), max_threads, 4,
-          std::unique_ptr<ThreadsafeExQueue<Page>>(
-              new ThreadsafeExQueue<Page>()),
-          std::unique_ptr<HTMLScraper>(new HTMLScraper()));
+      WebspiderThreadpools t(std::string("www.umass.edu"), max_threads, 4,
+                             std::unique_ptr<ThreadsafeExQueue<Page>>(
+                                 new ThreadsafeExQueue<Page>()),
+                             std::unique_ptr<HTMLScraper>(new HTMLScraper(curl_log)));
 
       double start_time = GetMonotonicTime();
       t.crawl_web();

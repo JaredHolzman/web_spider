@@ -31,6 +31,11 @@ HTMLScraper::get_page_hrefs(std::string webpage_address) {
   std::vector<std::string *> page_hrefs =
       parse_html(webpage_html, webpage_address);
 
+
+  if (log_file.is_open()) {
+    log_file << webpage_address << std::endl;
+  }
+
   return page_hrefs;
 }
 
