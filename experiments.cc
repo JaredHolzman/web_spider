@@ -12,7 +12,6 @@
 #include <string>
 #include <thread>
 
-// Provided courtesy of Kyle Vedder of UMass' AMRL lab
 double GetMonotonicTime() {
   timespec ts;
   clock_gettime(CLOCK_MONOTONIC, &ts);
@@ -25,11 +24,11 @@ int main() {
   std::ofstream output;
   output.open("output.txt", std::ios::app);
 
-  for (size_t max_threads = 50; max_threads < 700; max_threads += 50) {
+  for (size_t max_threads = 1; max_threads < 50; max_threads ++) {
 
     output << max_threads;
 
-    for (size_t trials = 0; trials < 10; trials++) {
+    for (size_t trials = 0; trials < 20; trials++) {
       double delta = 0.0;
       WebspiderThreadpools t(
           std::string("www.umass.edu"), max_threads, 4,
