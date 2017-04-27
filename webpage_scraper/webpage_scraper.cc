@@ -11,6 +11,10 @@ size_t curl_to_string(void *ptr, size_t size, size_t nmemb, void *data) {
 }
 
 HTMLScraper::HTMLScraper() {}
+HTMLScraper::HTMLScraper(const std::string &log_file_name) : log_file() {
+  log_file.open(log_file_name, std::ios::app);
+}
+HTMLScraper::~HTMLScraper() { log_file.close(); }
 
 /**
    Takes in webpage address and returns a vector of string pointers of all
@@ -50,11 +54,21 @@ void HTMLScraper::get_page_html(std::string webpage_address,
     curl_easy_setopt(curl, CURLOPT_DNS_CACHE_TIMEOUT, -1L);
 
     res = curl_easy_perform(curl);
-
     /* Check for errors */
     if (res != CURLE_OK) {
-      std::wcerr << "curl_easy_perform() failed: " << curl_easy_strerror(res)
-                 << " " << webpage_address.c_str() << std::endl;
+      std::chrono::time_point<std::chrono::system_clock> curr_time;
+      curr_time = std::chrono::system_clock::now();
+      std::time_t curr_timestamp =
+          std::chrono::system_clock::to_time_t(curr_time);
+      if (log_file.is_open()) {
+        log_file << "curl_easy_perform() failed: " << curl_easy_strerror(res)
+                 << " " << webpage_address.c_str() << " "
+                 << std::ctime(&curr_timestamp) << std::endl;
+      } else {
+        std::wcerr << "curl_easy_perform() failed: " << curl_easy_strerror(res)
+                   << " " << webpage_address.c_str() << " "
+                   << std::ctime(&curr_timestamp) << std::endl;
+      }
     }
 
     /* always cleanup */
