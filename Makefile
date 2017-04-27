@@ -6,7 +6,7 @@ WPDIR = webspider_threadpools
 CC = g++
 CPPFLAGS = `pkg-config gumbo libcurl libsoup-2.4 --cflags`
 CPPLIBS = `pkg-config gumbo libcurl libsoup-2.4 --libs`
-ALLFLAGS = -std=c++11 -Wall -Wextra $(CPPFLAGS) $(CPPLIBS)
+ALLFLAGS = -std=c++11 -Wall -Wextra -g $(CPPFLAGS) $(CPPLIBS)
 OBJS = threadsafe_exqueue.o threadsafe_queue.o webpage_scraper.o webspider_threadpools.o webspider_threads.o
 
 all: main experiments
