@@ -21,7 +21,7 @@ double GetMonotonicTime() {
 }
 
 int main(int argc, char *argv[]) {
-  if (argc != 5 && argc != 6) {
+  if (argc != 2) {
     std::cout
         << "Usage: ./experiements [http://www.example.com webpage_address]"
         << std::endl;
