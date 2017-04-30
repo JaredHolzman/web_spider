@@ -4,10 +4,11 @@ WebspiderThreads::WebspiderThreads(const std::string &root_webpage_address,
                                    const size_t max_threads,
                                    const int max_depth,
                                    ThreadsafeQueue<Page> &tsqueue,
-                                   HTMLScraper &scraper)
+                                   HTMLScraper &scraper, const bool verbose)
     : root_webpage_address(root_webpage_address),
       max_threads(max_threads),
       max_depth(max_depth),
+      verbose(verbose),
       tsqueue(tsqueue),
       scraper(scraper),
       finished_mutex(),
@@ -46,6 +47,10 @@ void WebspiderThreads::crawl_page() {
     avail_threads_cv.notify_one();
     lock.unlock();
     return;
+  }
+
+  if (verbose) {
+    std::cout << *(page->page_href) << " " << page->depth << std::endl;
   }
 
   std::vector<std::unique_ptr<std::string>> linked_pages;

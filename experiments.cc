@@ -39,7 +39,7 @@ int main() {
       ThreadsafeExQueue<Page> ts_queue;
       HTMLScraper scraper(root_webpage_address, curl_log);
       WebspiderThreadpools spider(root_webpage_address, max_threads, 2,
-                                  ts_queue, scraper);
+                                  ts_queue, scraper, false);
 
       double start_time = GetMonotonicTime();
       spider.crawl_web();
