@@ -143,18 +143,30 @@ void HTMLScraper::parse_url(const std::string &_base, const std::string &_href,
   try {
     base = Poco::URI(_base);
   } catch (const std::exception &e) {
-    std::cerr << e.what()
-              << ": Poco::Syntax exception. Failed to parse base: " << _base
-              << std::endl;
+    if (log_file.is_open()) {
+      log_file << e.what()
+               << ": Poco::Syntax exception. Failed to parse base: " << _base
+               << std::endl;
+    } else {
+      std::cerr << e.what()
+                << ": Poco::Syntax exception. Failed to parse base: " << _base
+                << std::endl;
+    }
     *parsed_url = "";
     return;
   }
   try {
     url = Poco::URI(base, _href);
   } catch (const std::exception &e) {
-    std::cerr << e.what()
-              << ": Poco::Syntax exception. Failed to parse href: " << _href
-              << std::endl;
+    if (log_file.is_open()) {
+      log_file << e.what()
+               << ": Poco::Syntax exception. Failed to parse href: " << _href
+               << std::endl;
+    } else {
+      std::cerr << e.what()
+                << ": Poco::Syntax exception. Failed to parse href: " << _href
+                << std::endl;
+    }
     *parsed_url = "";
     return;
   }
