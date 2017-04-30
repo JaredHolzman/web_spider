@@ -20,7 +20,15 @@ double GetMonotonicTime() {
   return time;
 }
 
-int main() {
+int main(int argc, char *argv[]) {
+  if (argc != 5 && argc != 6) {
+    std::cout
+        << "Usage: ./experiements [http://www.example.com webpage_address]"
+        << std::endl;
+
+    return 0;
+  }
+
   std::ofstream output;
   output.open("./logs/output.txt", std::ios::app);
 
@@ -35,7 +43,7 @@ int main() {
                                     std::to_string(max_threads) + "_" +
                                     std::to_string(trials);
       double delta = 0.0;
-      std::string root_webpage_address = std::string("http://www.umass.edu");
+      std::string root_webpage_address = std::string(argv[1]);
       ThreadsafeExQueue<Page> ts_queue;
       HTMLScraper scraper(root_webpage_address, curl_log);
       WebspiderThreadpools spider(root_webpage_address, max_threads, 2,
