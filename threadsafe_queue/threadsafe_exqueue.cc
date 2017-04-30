@@ -8,7 +8,7 @@ ThreadsafeExQueue<T>::~ThreadsafeExQueue() {}
 
 template <class T>
 void ThreadsafeExQueue<T>::append(std::unique_ptr<T> elem) {
-  std::unique_lock<std::mutex> set_lock(ThreadsafeQueue<T>::queue_mutex);
+  std::unique_lock<std::mutex> set_lock(set_mutex);
   if (exclude_set.count(*elem)) {
     set_lock.unlock();
     return;
