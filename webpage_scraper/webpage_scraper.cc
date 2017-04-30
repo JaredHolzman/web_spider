@@ -10,40 +10,50 @@ size_t curl_to_string(void *ptr, size_t size, size_t nmemb, void *data) {
   return size * nmemb;
 }
 
-HTMLScraper::HTMLScraper() {}
-HTMLScraper::HTMLScraper(const std::string &log_file_name) : log_file() {
+HTMLScraper::HTMLScraper(const std::string &root_url) {
+  Poco::URI root_uri(root_url);
+  root_url_host = root_uri.getHost();
+  curl_global_init(CURL_GLOBAL_ALL);
+}
+HTMLScraper::HTMLScraper(const std::string &root_url,
+                         const std::string &log_file_name)
+    : log_file() {
+  Poco::URI root_uri(root_url);
+  root_url_host = root_uri.getHost();
   log_file.open(log_file_name, std::ios::app);
 }
-HTMLScraper::~HTMLScraper() { log_file.close(); }
+HTMLScraper::~HTMLScraper() {
+  curl_global_cleanup();
+  log_file.close();
+}
 
 /**
-   Takes in webpage address and returns a vector of string pointers of all
-   hrefs on that page.
+   Takes in webpage address and a vector of string pointers and fills the vector
+ with of all hrefs on that page.
  **/
-std::vector<std::string *>
-HTMLScraper::get_page_hrefs(std::string webpage_address) {
+void HTMLScraper::get_page_hrefs(
+    const std::string &webpage_address,
+    std::vector<std::unique_ptr<std::string>> *hrefs) {
   std::string webpage_html;
   get_page_html(webpage_address, &webpage_html);
+
   if (webpage_html.empty()) {
-    return std::vector<std::string *>();
+    return;
   }
 
-  std::vector<std::string *> page_hrefs =
-      parse_html(webpage_html, webpage_address);
+  parse_html(webpage_html, webpage_address, hrefs);
 
-
+  // Write to log file if one was specified
   if (log_file.is_open()) {
     log_file << webpage_address << std::endl;
   }
-
-  return page_hrefs;
 }
 
 /**
    Takes in a webpage address and returns a string of all HTML for that page.
    Includes response headers as well for now for debugging.
 **/
-void HTMLScraper::get_page_html(std::string webpage_address,
+void HTMLScraper::get_page_html(const std::string &webpage_address,
                                 std::string *webpage_html) {
   CURL *curl;
   CURLcode res;
@@ -56,7 +66,7 @@ void HTMLScraper::get_page_html(std::string webpage_address,
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_to_string);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, webpage_html);
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, 15L);
-    curl_easy_setopt(curl, CURLOPT_DNS_CACHE_TIMEOUT, -1L);
+    curl_easy_setopt(curl, CURLOPT_DNS_CACHE_TIMEOUT, 0);
 
     res = curl_easy_perform(curl);
     /* Check for errors */
@@ -86,12 +96,12 @@ void HTMLScraper::get_page_html(std::string webpage_address,
    Uses Google's HTML gumbo-parser library.
    Returns vector of string pointers for each href found.
 **/
-std::vector<std::string *>
-HTMLScraper::parse_html(std::string page_html, std::string webpage_address) {
-  std::vector<std::string *> page_hrefs;
+void HTMLScraper::parse_html(const std::string &webpage_html,
+                             const std::string &webpage_address,
+                             std::vector<std::unique_ptr<std::string>> *hrefs) {
   std::vector<GumboNode *> nodes;
 
-  GumboOutput *output = gumbo_parse(page_html.c_str());
+  GumboOutput *output = gumbo_parse(webpage_html.c_str());
   GumboNode *root = output->root;
   nodes.push_back(root);
 
@@ -104,12 +114,15 @@ HTMLScraper::parse_html(std::string page_html, std::string webpage_address) {
 
     GumboAttribute *href;
     std::string href_string;
+
     if (node->v.element.tag == GUMBO_TAG_A &&
         (href = gumbo_get_attribute(&node->v.element.attributes, "href")) &&
         !(href_string = std::string(href->value)).empty()) {
-      std::string parsed_href_string = parse_url(webpage_address, href_string);
-      if (!parsed_href_string.empty()) {
-        page_hrefs.push_back(new std::string(parsed_href_string));
+      std::string parsed_url;
+      parse_url(webpage_address, href_string, &parsed_url);
+      if (!parsed_url.empty()) {
+        hrefs->push_back(
+            std::unique_ptr<std::string>(new std::string(parsed_url)));
       }
     }
 
@@ -120,33 +133,23 @@ HTMLScraper::parse_html(std::string page_html, std::string webpage_address) {
   }
 
   gumbo_destroy_output(&kGumboDefaultOptions, output);
-  return page_hrefs;
 }
 
-std::string HTMLScraper::parse_url(std::string base, std::string href) {
+void HTMLScraper::parse_url(const std::string &_base, const std::string &_href,
+                            std::string *parsed_url) {
+  Poco::URI base = Poco::URI(_base);
+  Poco::URI url = Poco::URI(base, _href);
+  url.setFragment("");
+  url.setQuery("");
 
-  SoupURI *_base = soup_uri_new((base).c_str());
-  SoupURI *_url = href.find_first_of(":") > href.find_first_of("/#?")
-                      ? _url = soup_uri_new_with_base(_base, href.c_str())
-                      : _url = soup_uri_new(href.c_str());
-
-  if (!SOUP_URI_VALID_FOR_HTTP(_url)) {
-    return "";
+  if (url.getHost() != root_url_host ||
+      (url.getPath().length() >= 4 &&
+       url.getPath().substr(url.getPath().length() - 4, std::string::npos) ==
+           ".pdf")) {
+    *parsed_url = "";
+    return;
   }
 
-  // Filter out non-umass urls, hack
-  std::string host = std::string(soup_uri_get_host(_url));
-  if (host != "umass.edu" && host != "www.umass.edu") {
-    return "";
-  }
-
-  soup_uri_set_fragment(_url, NULL);
-  soup_uri_set_query(_url, NULL);
-  std::string url(soup_uri_to_string(_url, FALSE));
-  soup_uri_free(_url);
-
-  if (url.substr(url.length() - 4, std::string::npos) == ".pdf") {
-    return "";
-  }
-  return url;
+//   std::cout << url.toString() << std::endl;
+  *parsed_url = url.toString();
 }

@@ -4,11 +4,11 @@
 #include "webspider_threadpools/webspider_threadpools.h"
 #include "webspider_threads/webspider_threads.h"
 
+#include <string.h>
 #include <chrono>
 #include <fstream>
 #include <iostream>
 #include <memory>
-#include <string.h>
 #include <string>
 #include <thread>
 
@@ -24,24 +24,25 @@ int main() {
   std::ofstream output;
   output.open("./logs/output.txt", std::ios::app);
 
-  for (size_t max_threads = 1; max_threads < 50; max_threads++) {
-
+  for (size_t max_threads = 1; max_threads <= 50; max_threads++) {
     output << max_threads;
 
     for (size_t trials = 0; trials < 20; trials++) {
       std::cout << "Threads:" << max_threads << " Trial: " << trials
                 << std::endl;
 
-      const std::string &curl_log = "./logs/curl_log_" + std::to_string(max_threads) +
-                                    "_" + std::to_string(trials);
+      const std::string &curl_log = "./logs/curl_log_" +
+                                    std::to_string(max_threads) + "_" +
+                                    std::to_string(trials);
       double delta = 0.0;
-      WebspiderThreadpools t(std::string("www.umass.edu"), max_threads, 3,
-                             std::unique_ptr<ThreadsafeExQueue<Page>>(
-                                 new ThreadsafeExQueue<Page>()),
-                             std::unique_ptr<HTMLScraper>(new HTMLScraper(curl_log)));
+      std::string root_webpage_address = std::string("http://www.umass.edu");
+      ThreadsafeExQueue<Page> ts_queue;
+      HTMLScraper scraper(root_webpage_address, curl_log);
+      WebspiderThreadpools spider(root_webpage_address, max_threads, 2,
+                                  ts_queue, scraper);
 
       double start_time = GetMonotonicTime();
-      t.crawl_web();
+      spider.crawl_web();
       double end_time = GetMonotonicTime();
       delta += end_time - start_time;
 

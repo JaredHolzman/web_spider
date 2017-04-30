@@ -1,38 +1,34 @@
 #ifndef _WEBSPIDER_THREADS_H
 #define _WEBSPIDER_THREADS_H
 
-#include "../threadsafe_queue/threadsafe_queue.h"
-#include "../webpage_scraper/webpage_scraper.h"
 #include <condition_variable>
-#include <err.h>
 #include <iostream>
 #include <memory>
 #include <mutex>
-#include <string.h>
 #include <string>
 #include <system_error>
 #include <thread>
-
+#include "../threadsafe_queue/threadsafe_queue.h"
+#include "../webpage_scraper/webpage_scraper.h"
 
 class WebspiderThreads {
-public:
-  WebspiderThreads(std::string root_webpage_address, size_t max_threads,
-                   int max_depth,
-                   std::unique_ptr<ThreadsafeQueue<Page>> tsqueue,
-                   std::unique_ptr<HTMLScraper> scraper);
+ public:
+  WebspiderThreads(const std::string &root_webpage_address,
+                   const size_t max_threads, const int max_depth,
+                   ThreadsafeQueue<Page> &tsqueue, HTMLScraper &scraper);
 
   ~WebspiderThreads();
 
   void crawl_web();
 
-private:
+ private:
   void crawl_page();
 
-  std::string root_webpage_address;
-  size_t max_threads;
-  int max_depth;
-  std::unique_ptr<ThreadsafeQueue<Page>> tsqueue;
-  std::unique_ptr<HTMLScraper> scraper;
+  const std::string &root_webpage_address;
+  const size_t max_threads;
+  const int max_depth;
+  ThreadsafeQueue<Page> &tsqueue;
+  HTMLScraper &scraper;
   std::mutex finished_mutex;
   bool is_finished;
   std::condition_variable avail_threads_cv;

@@ -1,20 +1,21 @@
 #ifndef _THREADSAFE_EXQUEUE_H
 #define _THREADSAFE_EXQUEUE_H
 
-#include "threadsafe_queue.h"
 #include <unordered_set>
+#include "threadsafe_queue.h"
 
-template <class T> class ThreadsafeExQueue : public ThreadsafeQueue<T> {
-private:
+template <class T>
+class ThreadsafeExQueue : public ThreadsafeQueue<T> {
+ private:
   std::unordered_set<T> exclude_set;
-  std::mutex set_mutex; // Mutex
+  std::mutex set_mutex;  // Mutex
 
-public:
+ public:
   // Constructor to initialize locks, conditional variables, and vector
   ThreadsafeExQueue();
   ~ThreadsafeExQueue();
-  void append(T *elem);
-  T *remove();
+  void append(std::unique_ptr<T> elem);
+  std::unique_ptr<T> remove();
 };
 
 #endif

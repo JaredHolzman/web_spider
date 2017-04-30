@@ -1,19 +1,23 @@
 #include "webspider_threadpools.h"
 
 WebspiderThreadpools::WebspiderThreadpools(
-    std::string root_webpage_address, size_t max_threads, int max_depth,
-    std::unique_ptr<ThreadsafeQueue<Page>> tsqueue,
-    std::unique_ptr<HTMLScraper> scraper)
-    : root_webpage_address(root_webpage_address), max_threads(max_threads),
-      max_depth(max_depth), tsqueue(std::move(tsqueue)),
-      scraper(std::move(scraper)), finished_mutex(), is_finished(false) {}
+    const std::string &root_webpage_address, const size_t max_threads,
+    const int max_depth, ThreadsafeQueue<Page> &tsqueue, HTMLScraper &scraper)
+    : root_webpage_address(root_webpage_address),
+      max_threads(max_threads),
+      max_depth(max_depth),
+      tsqueue(tsqueue),
+      scraper(scraper),
+      finished_mutex(),
+      is_finished(false) {}
 
 WebspiderThreadpools::~WebspiderThreadpools() {}
 
 void WebspiderThreadpools::crawl_web() {
   std::thread workers[max_threads];
 
-  tsqueue->append(new Page(&root_webpage_address, new std::string("Root"), 0));
+  tsqueue.append(std::unique_ptr<Page>(new Page(
+      std::unique_ptr<std::string>(new std::string(root_webpage_address)), 0)));
 
   // Create threads to crawl webpages
   for (size_t i = 0; i < max_threads; i++) {
@@ -28,25 +32,27 @@ void WebspiderThreadpools::crawl_web() {
 
 void WebspiderThreadpools::crawl_page() {
   while (!is_finished) {
-    Page *page = tsqueue->remove();
-    // std::cout << *(page->page_href) << " " << std::endl;
+    std::unique_ptr<Page> page = tsqueue.remove();
+    // std::cout << *(page->page_href) << " " << page->depth << std::endl;
 
     if (page == NULL) {
       break;
     }
 
-    std::vector<std::string *> linked_pages =
-        scraper->get_page_hrefs(*page->page_href);
+    std::vector<std::unique_ptr<std::string>> linked_pages;
+    scraper.get_page_hrefs(*page->page_href, &linked_pages);
 
     int depth_next = page->depth + 1;
     for (size_t i = 0; i < linked_pages.size(); i++) {
       // std::cout << *linked_pages[i] << " " << depth_next << std::endl;
-      if (depth_next < max_depth) {
-        tsqueue->append(new Page(linked_pages[i], page->page_href, depth_next));
+      if (depth_next <= max_depth) {
+        std::unique_ptr<Page> page = std::unique_ptr<Page>(
+            new Page(std::move(linked_pages[i]), depth_next));
+        tsqueue.append(std::move(page));
       }
     }
 
-    if (depth_next >= max_depth) {
+    if (depth_next > max_depth) {
       break;
     }
   }
@@ -54,10 +60,10 @@ void WebspiderThreadpools::crawl_page() {
   std::unique_lock<std::mutex> lock(finished_mutex);
   if (!is_finished) {
     is_finished = true;
-    tsqueue->setFinished();
+    tsqueue.setFinished();
   }
   lock.unlock();
-  tsqueue->signal();
+  tsqueue.signal();
 }
 
 void WebspiderThreadpools::join_workers(std::thread &thread, bool verbose) {
