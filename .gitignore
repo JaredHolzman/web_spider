@@ -14,3 +14,6 @@ S
 *.[oa]
 *.html
 *.#*
+*.kdev4
+.kdev4/**/*
+logs
