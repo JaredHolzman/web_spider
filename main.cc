@@ -10,9 +10,9 @@
 #include <string>
 
 int main(int argc, char *argv[]) {
-  if (argc != 4) {
+  if (argc != 5) {
     std::cout << "Usage: ./spider [http://www.example.com webpage_address] [1 "
-                 "max_threads] [1 max_depth] [t|p]"
+                 "max_threads] [1 max_depth] [t|p] "
               << std::endl;
 
     return 0;
