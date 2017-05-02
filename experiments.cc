@@ -43,7 +43,7 @@ int main(int argc, char *argv[]) {
       int count = 0;
       bool no_fail = false;
       double delta = 0.0;
-      
+
       // Will repeat each trial up to 10 times or until there is no error
       while (!no_fail && count < 10) {
         std::chrono::time_point<std::chrono::system_clock> curr_time;
@@ -54,10 +54,10 @@ int main(int argc, char *argv[]) {
         time[strlen(time) - 2] = '\0';
         if (trial_count.is_open()) {
           trial_count << time << " Threads:" << max_threads
-                      << " Trial: " << trials << " " << time << std::endl;
+                      << " Trial: " << trials << " " << std::endl;
         }
         std::cout << time << " Threads:" << max_threads << " Trial: " << trials
-                  << " " << std::endl;
+                  << std::endl;
 
         const std::string &curl_log =
             "./logs/curl_log_" + std::to_string(max_threads) + "_" +
