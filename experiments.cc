@@ -53,10 +53,10 @@ int main(int argc, char *argv[]) {
         char *time = std::ctime(&curr_timestamp);
         time[strlen(time) - 2] = '\0';
         if (trial_count.is_open()) {
-          trial_count << time << " Threads:" << max_threads
+          trial_count << time << " Threads: " << max_threads
                       << " Trial: " << trials << " " << std::endl;
         }
-        std::cout << time << " Threads:" << max_threads << " Trial: " << trials
+        std::cout << time << " Threads: " << max_threads << " Trial: " << trials
                   << std::endl;
 
         const std::string &curl_log =
