@@ -21,22 +21,36 @@ double GetMonotonicTime() {
 }
 
 int main(int argc, char *argv[]) {
-  if (argc != 2) {
-    std::cout
-        << "Usage: ./experiements [http://www.example.com webpage_address]"
-        << std::endl;
+  if (argc != 2 && argc != 3) {
+    std::cout << "Usage: ./experiements [http://www.example.com] [output file]"
+              << std::endl;
 
     return 0;
   }
 
   std::ofstream output;
   output.open("./logs/output.txt", std::ios::app);
+  std::ofstream trial_count;
+
+  if (argc == 3) {
+    trial_count.open(std::string(argv[2]), std::ios::app);
+  }
 
   for (size_t max_threads = 1; max_threads <= 50; max_threads++) {
     output << max_threads;
 
     for (size_t trials = 0; trials < 20; trials++) {
-      std::cout << "Threads:" << max_threads << " Trial: " << trials
+      std::chrono::time_point<std::chrono::system_clock> curr_time;
+      curr_time = std::chrono::system_clock::now();
+      std::time_t curr_timestamp =
+          std::chrono::system_clock::to_time_t(curr_time);
+        char *time = std::ctime(&curr_timestamp);
+          time[strlen(time) - 2] = '\0';
+      if (trial_count.is_open()) {
+        trial_count << time << " Threads:" << max_threads << " Trial: " << trials << " "
+                    << time << std::endl;
+      }
+      std::cout << time << " Threads:" << max_threads << " Trial: " << trials << " "
                 << std::endl;
 
       const std::string &curl_log = "./logs/curl_log_" +
@@ -46,7 +60,7 @@ int main(int argc, char *argv[]) {
       std::string root_webpage_address = std::string(argv[1]);
       ThreadsafeExQueue<Page> ts_queue;
       HTMLScraper scraper(root_webpage_address, curl_log);
-      WebspiderThreadpools spider(root_webpage_address, max_threads, 4,
+      WebspiderThreadpools spider(root_webpage_address, max_threads, 1,
                                   ts_queue, scraper, false);
 
       double start_time = GetMonotonicTime();

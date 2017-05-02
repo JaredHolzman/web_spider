@@ -20,6 +20,9 @@ HTMLScraper::HTMLScraper(const std::string &root_url,
     : log_file() {
   Poco::URI root_uri(root_url);
   root_url_host = root_uri.getHost();
+
+  curl_global_init(CURL_GLOBAL_ALL);
+
   log_file.open(log_file_name, std::ios::app);
 }
 HTMLScraper::~HTMLScraper() {
@@ -45,7 +48,12 @@ void HTMLScraper::get_page_hrefs(
 
   // Write to log file if one was specified
   if (log_file.is_open()) {
-    log_file << webpage_address << std::endl;
+    std::chrono::time_point<std::chrono::system_clock> curr_time;
+    curr_time = std::chrono::system_clock::now();
+    std::time_t curr_timestamp =
+        std::chrono::system_clock::to_time_t(curr_time);
+    log_file << webpage_address << " " << std::ctime(&curr_timestamp)
+             << std::endl;
   }
 }
 
@@ -143,14 +151,18 @@ void HTMLScraper::parse_url(const std::string &_base, const std::string &_href,
   try {
     base = Poco::URI(_base);
   } catch (const std::exception &e) {
+    std::chrono::time_point<std::chrono::system_clock> curr_time;
+    curr_time = std::chrono::system_clock::now();
+    std::time_t curr_timestamp =
+        std::chrono::system_clock::to_time_t(curr_time);
     if (log_file.is_open()) {
       log_file << e.what()
                << ": Poco::Syntax exception. Failed to parse base: " << _base
-               << std::endl;
+               << " " << std::ctime(&curr_timestamp) << std::endl;
     } else {
       std::cerr << e.what()
                 << ": Poco::Syntax exception. Failed to parse base: " << _base
-                << std::endl;
+                << " " << std::ctime(&curr_timestamp) << std::endl;
     }
     *parsed_url = "";
     return;
@@ -158,14 +170,18 @@ void HTMLScraper::parse_url(const std::string &_base, const std::string &_href,
   try {
     url = Poco::URI(base, _href);
   } catch (const std::exception &e) {
+    std::chrono::time_point<std::chrono::system_clock> curr_time;
+    curr_time = std::chrono::system_clock::now();
+    std::time_t curr_timestamp =
+        std::chrono::system_clock::to_time_t(curr_time);
     if (log_file.is_open()) {
       log_file << e.what()
                << ": Poco::Syntax exception. Failed to parse href: " << _href
-               << std::endl;
+               << " " << std::ctime(&curr_timestamp) << std::endl;
     } else {
       std::cerr << e.what()
                 << ": Poco::Syntax exception. Failed to parse href: " << _href
-                << std::endl;
+                << " " << std::ctime(&curr_timestamp) << std::endl;
     }
     *parsed_url = "";
     return;
