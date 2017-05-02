@@ -39,11 +39,14 @@ int main(int argc, char *argv[]) {
   for (size_t max_threads = 1; max_threads <= 50; max_threads++) {
     output << max_threads;
 
+    std::cout << "here1" << std::endl;
     for (size_t trials = 0; trials < 20; trials++) {
+      std::cout << "here2" << std::endl;
       int count = 0;
-      bool no_fail = true;
+      bool no_fail = false;
       double delta = 0.0;
       while (count == 0 && !no_fail) {
+          std::cout << "here3" << std::endl;
         std::chrono::time_point<std::chrono::system_clock> curr_time;
         curr_time = std::chrono::system_clock::now();
         std::time_t curr_timestamp =
@@ -57,9 +60,9 @@ int main(int argc, char *argv[]) {
         std::cout << time << " Threads:" << max_threads << " Trial: " << trials
                   << " " << std::endl;
 
-        const std::string &curl_log = "./logs/curl_log_" +
-                                      std::to_string(max_threads) + "_" +
-                                      std::to_string(trials)+ "_" + std::to_string(count);
+        const std::string &curl_log =
+            "./logs/curl_log_" + std::to_string(max_threads) + "_" +
+            std::to_string(trials) + "_" + std::to_string(count);
         double delta = 0.0;
         std::string root_webpage_address = std::string(argv[1]);
         ThreadsafeExQueue<Page> ts_queue;
@@ -77,7 +80,7 @@ int main(int argc, char *argv[]) {
 
         std::string line;
         while (getline(trial_log, line)) {
-          no_fail =
+          no_fail &=
               line.find("curl_easy_perform() failed", 0) != std::string::npos;
         }
 
