@@ -43,7 +43,7 @@ int main(int argc, char *argv[]) {
       int count = 0;
       bool no_fail = false;
       double delta = 0.0;
-      while (count == 0 && !no_fail) {
+      while (count < 10 && !no_fail) {
         std::chrono::time_point<std::chrono::system_clock> curr_time;
         curr_time = std::chrono::system_clock::now();
         std::time_t curr_timestamp =
