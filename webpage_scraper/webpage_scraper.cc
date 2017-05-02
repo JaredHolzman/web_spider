@@ -73,7 +73,7 @@ void HTMLScraper::get_page_html(const std::string &webpage_address,
     curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curl_to_string);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, webpage_html);
-    // curl_easy_setopt(curl, CURLOPT_TIMEOUT, 15L);
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10L);
     curl_easy_setopt(curl, CURLOPT_DNS_CACHE_TIMEOUT, 0);
 
     res = curl_easy_perform(curl);
