@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
 
         const std::string &curl_log = "./logs/curl_log_" +
                                       std::to_string(max_threads) + "_" +
-                                      std::to_string(trials);
+                                      std::to_string(trials)+ "_" + std::to_string(count);
         double delta = 0.0;
         std::string root_webpage_address = std::string(argv[1]);
         ThreadsafeExQueue<Page> ts_queue;
