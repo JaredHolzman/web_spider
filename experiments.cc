@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
         std::string root_webpage_address = std::string(argv[1]);
         ThreadsafeExQueue<Page> ts_queue;
         HTMLScraper scraper(root_webpage_address, curl_log);
-        WebspiderThreadpools spider(root_webpage_address, max_threads, 4,
+        WebspiderThreadpools spider(root_webpage_address, max_threads, 3,
                                     ts_queue, scraper, false);
 
         double start_time = GetMonotonicTime();
