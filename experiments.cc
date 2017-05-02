@@ -42,7 +42,9 @@ int main(int argc, char *argv[]) {
     for (size_t trials = 0; trials < 20; trials++) {
       int count = 0;
       bool no_fail = false;
-      double delta;
+      double delta = 0.0;
+      
+      // Will repeat each trial up to 10 times or until there is no error
       while (!no_fail && count < 10) {
         std::chrono::time_point<std::chrono::system_clock> curr_time;
         curr_time = std::chrono::system_clock::now();
@@ -64,13 +66,13 @@ int main(int argc, char *argv[]) {
         std::string root_webpage_address = std::string(argv[1]);
         ThreadsafeExQueue<Page> ts_queue;
         HTMLScraper scraper(root_webpage_address, curl_log);
-        WebspiderThreadpools spider(root_webpage_address, max_threads, 1,
+        WebspiderThreadpools spider(root_webpage_address, max_threads, 3,
                                     ts_queue, scraper, false);
 
         double start_time = GetMonotonicTime();
         spider.crawl_web();
         double end_time = GetMonotonicTime();
-        delta = end_time - start_time;
+        delta += end_time - start_time;
 
         std::ifstream trial_log;
         trial_log.open("./logs/output.txt");
