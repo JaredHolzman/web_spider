@@ -42,8 +42,8 @@ int main(int argc, char *argv[]) {
     for (size_t trials = 0; trials < 20; trials++) {
       int count = 0;
       bool no_fail = false;
-      double delta = 0.0;
-      while (count < 10 && !no_fail) {
+      double delta;
+      while (!no_fail && count < 10) {
         std::chrono::time_point<std::chrono::system_clock> curr_time;
         curr_time = std::chrono::system_clock::now();
         std::time_t curr_timestamp =
@@ -60,11 +60,11 @@ int main(int argc, char *argv[]) {
         const std::string &curl_log =
             "./logs/curl_log_" + std::to_string(max_threads) + "_" +
             std::to_string(trials) + "_" + std::to_string(count);
-        double delta = 0.0;
+
         std::string root_webpage_address = std::string(argv[1]);
         ThreadsafeExQueue<Page> ts_queue;
         HTMLScraper scraper(root_webpage_address, curl_log);
-        WebspiderThreadpools spider(root_webpage_address, max_threads, 3,
+        WebspiderThreadpools spider(root_webpage_address, max_threads, 1,
                                     ts_queue, scraper, false);
 
         double start_time = GetMonotonicTime();
@@ -76,9 +76,10 @@ int main(int argc, char *argv[]) {
         trial_log.open("./logs/output.txt");
 
         std::string line;
+        no_fail = true;
         while (getline(trial_log, line)) {
           no_fail &=
-              line.find("curl_easy_perform() failed", 0) != std::string::npos;
+              line.find("curl_easy_perform() failed", 0) == std::string::npos;
         }
 
         std::this_thread::sleep_for(std::chrono::seconds(2));
