@@ -39,14 +39,11 @@ int main(int argc, char *argv[]) {
   for (size_t max_threads = 1; max_threads <= 50; max_threads++) {
     output << max_threads;
 
-    std::cout << "here1" << std::endl;
     for (size_t trials = 0; trials < 20; trials++) {
-      std::cout << "here2" << std::endl;
       int count = 0;
       bool no_fail = false;
       double delta = 0.0;
       while (count == 0 && !no_fail) {
-          std::cout << "here3" << std::endl;
         std::chrono::time_point<std::chrono::system_clock> curr_time;
         curr_time = std::chrono::system_clock::now();
         std::time_t curr_timestamp =
