@@ -76,7 +76,7 @@ void HTMLScraper::write_log(
            << curl_easy_strerror(res) << ", " << namelookup_time << ", "
            << connect_time << ", " << appconnect_time << ", "
            << pretransfer_time << ", " << redirect_time << ", "
-           << starttransfer_time << ", " << total_time << ", " << std::endl;
+           << starttransfer_time << ", " << total_time << std::endl;
 
   if (res != CURLE_OK && error_log_file.is_open()) {
     error_log_file << ctime
