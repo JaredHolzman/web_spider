@@ -20,10 +20,13 @@ HTMLScraper::HTMLScraper(const std::string &root_url,
     : log_file() {
   Poco::URI root_uri(root_url);
   root_url_host = root_uri.getHost();
-
   curl_global_init(CURL_GLOBAL_ALL);
 
   log_file.open(log_file_name, std::ios::app);
+  log_file << "timestamp, webpage_address, cURL_code, namelookup_time, "
+              "connect_time, appconnect_time, pretransfer_time, redirect_time, "
+              "starttransfer_time, total_time"
+           << std::endl;
 }
 HTMLScraper::~HTMLScraper() {
   curl_global_cleanup();
@@ -45,16 +48,34 @@ void HTMLScraper::get_page_hrefs(
   }
 
   parse_html(webpage_html, webpage_address, hrefs);
+}
 
-  // Write to log file if one was specified
-  if (log_file.is_open()) {
-    std::chrono::time_point<std::chrono::system_clock> curr_time;
-    curr_time = std::chrono::system_clock::now();
-    std::time_t curr_timestamp =
-        std::chrono::system_clock::to_time_t(curr_time);
-    log_file << webpage_address << " " << std::ctime(&curr_timestamp)
-             << std::endl;
+void HTMLScraper::write_log(
+    const CURLcode &res, const std::string &webpage_address,
+    const double &namelookup_time, const double &connect_time,
+    const double &appconnect_time, const double &pretransfer_time,
+    const double &redirect_time, const double &starttransfer_time,
+    const double &total_time) {
+  std::chrono::time_point<std::chrono::system_clock> curr_time;
+  curr_time = std::chrono::system_clock::now();
+  std::time_t curr_timestamp = std::chrono::system_clock::to_time_t(curr_time);
+  char *ctime = std::ctime(&curr_timestamp);
+  ctime[strlen(ctime) - 2] = '\0';
+
+  if (!log_file.is_open()) {
+    if (res != CURLE_OK) {
+      std::wcerr << "curl_easy_perform() failed: " << curl_easy_strerror(res)
+                 << " " << webpage_address.c_str() << " " << ctime << std::endl;
+    }
+
+    return;
   }
+
+  log_file << ctime << ", " << webpage_address << ", "
+           << curl_easy_strerror(res) << ", " << namelookup_time << ", "
+           << connect_time << ", " << appconnect_time << ", "
+           << pretransfer_time << ", " << redirect_time << ", "
+           << starttransfer_time << ", " << total_time << ", " << std::endl;
 }
 
 /**
@@ -76,9 +97,11 @@ void HTMLScraper::get_page_html(const std::string &webpage_address,
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10L);
     curl_easy_setopt(curl, CURLOPT_DNS_CACHE_TIMEOUT, 0);
 
+    res = curl_easy_perform(curl);
+    
     // Get latency data
-    double namelookup;
-    curl_easy_getinfo(curl, CURLINFO_NAMELOOKUP_TIME, &namelookup);
+    double namelookup_time;
+    curl_easy_getinfo(curl, CURLINFO_NAMELOOKUP_TIME, &namelookup_time);
     double connect_time;
     curl_easy_getinfo(curl, CURLINFO_CONNECT_TIME, &connect_time);
     double appconnect_time;
@@ -91,24 +114,10 @@ void HTMLScraper::get_page_html(const std::string &webpage_address,
     curl_easy_getinfo(curl, CURLINFO_STARTTRANSFER_TIME, &starttransfer_time);
     double total_time;
     curl_easy_getinfo(curl, CURLINFO_TOTAL_TIME, &total_time);
-    
-    res = curl_easy_perform(curl);
-    /* Check for errors */
-    if (res != CURLE_OK) {
-      std::chrono::time_point<std::chrono::system_clock> curr_time;
-      curr_time = std::chrono::system_clock::now();
-      std::time_t curr_timestamp =
-          std::chrono::system_clock::to_time_t(curr_time);
-      if (log_file.is_open()) {
-        log_file << "curl_easy_perform() failed: " << curl_easy_strerror(res)
-                 << " " << webpage_address.c_str() << " "
-                 << std::ctime(&curr_timestamp) << std::endl;
-      } else {
-        std::wcerr << "curl_easy_perform() failed: " << curl_easy_strerror(res)
-                   << " " << webpage_address.c_str() << " "
-                   << std::ctime(&curr_timestamp) << std::endl;
-      }
-    }
+
+    write_log(res, webpage_address, namelookup_time, connect_time,
+              appconnect_time, pretransfer_time, redirect_time,
+              starttransfer_time, total_time);
 
     /* always cleanup */
     curl_easy_cleanup(curl);
@@ -183,6 +192,7 @@ void HTMLScraper::parse_url(const std::string &_base, const std::string &_href,
     *parsed_url = "";
     return;
   }
+  
   try {
     url = Poco::URI(base, _href);
   } catch (const std::exception &e) {
