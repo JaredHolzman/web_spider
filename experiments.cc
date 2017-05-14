@@ -28,6 +28,7 @@ int main(int argc, char *argv[]) {
     return 0;
   }
 
+  system("mkdir -p ./logs/");
   std::ofstream data;
   data.open("./logs/data.csv", std::ios::app);
   std::ofstream trial_count;
@@ -59,8 +60,12 @@ int main(int argc, char *argv[]) {
         std::cout << time << " Threads: " << max_threads << " Trial: " << trials
                   << std::endl;
 
-        const std::string &curl_log =
-            "./logs/curl_log_" + std::to_string(max_threads) + "_" +
+        std::string curl_log_path =
+            "mkdir -p ./logs/" + std::to_string(max_threads);
+        system(curl_log_path.c_str());
+        
+        const std::string curl_log =
+            "./logs/"+std::to_string(max_threads)+"/curl_log_" + std::to_string(max_threads) + "_" +
             std::to_string(trials) + "_" + std::to_string(count);
 
         std::string root_webpage_address = std::string(argv[1]);
@@ -91,7 +96,7 @@ int main(int argc, char *argv[]) {
         count++;
       }
       // Write delta time to file
-      data << " " << delta;
+      data << ", " << delta;
 
       std::this_thread::sleep_for(std::chrono::seconds(2));
     }
