@@ -76,6 +76,22 @@ void HTMLScraper::get_page_html(const std::string &webpage_address,
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, 10L);
     curl_easy_setopt(curl, CURLOPT_DNS_CACHE_TIMEOUT, 0);
 
+    // Get latency data
+    double namelookup;
+    curl_easy_getinfo(curl, CURLINFO_NAMELOOKUP_TIME, &namelookup);
+    double connect_time;
+    curl_easy_getinfo(curl, CURLINFO_CONNECT_TIME, &connect_time);
+    double appconnect_time;
+    curl_easy_getinfo(curl, CURLINFO_APPCONNECT_TIME, &appconnect_time);
+    double pretransfer_time;
+    curl_easy_getinfo(curl, CURLINFO_PRETRANSFER_TIME, &pretransfer_time);
+    double redirect_time;
+    curl_easy_getinfo(curl, CURLINFO_REDIRECT_TIME, &redirect_time);
+    double starttransfer_time;
+    curl_easy_getinfo(curl, CURLINFO_STARTTRANSFER_TIME, &starttransfer_time);
+    double total_time;
+    curl_easy_getinfo(curl, CURLINFO_TOTAL_TIME, &total_time);
+    
     res = curl_easy_perform(curl);
     /* Check for errors */
     if (res != CURLE_OK) {
