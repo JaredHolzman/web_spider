@@ -24,6 +24,7 @@ class HTMLScraper {
 
  private:
   std::ofstream log_file;
+  std::ofstream error_log_file;
   std::string root_url_host;
   void write_log(const CURLcode &res, const std::string &webpage_address,
                  const double &namelookup_time, const double &connect_time,

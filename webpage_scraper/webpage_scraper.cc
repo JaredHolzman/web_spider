@@ -17,12 +17,13 @@ HTMLScraper::HTMLScraper(const std::string &root_url) {
 }
 HTMLScraper::HTMLScraper(const std::string &root_url,
                          const std::string &log_file_name)
-    : log_file() {
+    : log_file(), error_log_file() {
   Poco::URI root_uri(root_url);
   root_url_host = root_uri.getHost();
   curl_global_init(CURL_GLOBAL_ALL);
 
   log_file.open(log_file_name, std::ios::app);
+  error_log_file.open(log_file_name + "_errors", std::ios::app);
   log_file << "timestamp, webpage_address, cURL_code, namelookup_time, "
               "connect_time, appconnect_time, pretransfer_time, redirect_time, "
               "starttransfer_time, total_time"
@@ -67,7 +68,6 @@ void HTMLScraper::write_log(
       std::wcerr << "curl_easy_perform() failed: " << curl_easy_strerror(res)
                  << " " << webpage_address.c_str() << " " << ctime << std::endl;
     }
-
     return;
   }
 
@@ -76,6 +76,12 @@ void HTMLScraper::write_log(
            << connect_time << ", " << appconnect_time << ", "
            << pretransfer_time << ", " << redirect_time << ", "
            << starttransfer_time << ", " << total_time << ", " << std::endl;
+
+  if (res != CURLE_OK && error_log_file.is_open()) {
+    error_log_file << ctime
+                   << " curl_easy_perform() failed: " << curl_easy_strerror(res)
+                   << " " << webpage_address << std::endl;
+  }
 }
 
 /**
@@ -98,7 +104,7 @@ void HTMLScraper::get_page_html(const std::string &webpage_address,
     curl_easy_setopt(curl, CURLOPT_DNS_CACHE_TIMEOUT, 0);
 
     res = curl_easy_perform(curl);
-    
+
     // Get latency data
     double namelookup_time;
     curl_easy_getinfo(curl, CURLINFO_NAMELOOKUP_TIME, &namelookup_time);
@@ -180,10 +186,11 @@ void HTMLScraper::parse_url(const std::string &_base, const std::string &_href,
     curr_time = std::chrono::system_clock::now();
     std::time_t curr_timestamp =
         std::chrono::system_clock::to_time_t(curr_time);
-    if (log_file.is_open()) {
-      log_file << e.what()
-               << ": Poco::Syntax exception. Failed to parse base: " << _base
-               << " " << std::ctime(&curr_timestamp) << std::endl;
+    if (error_log_file.is_open()) {
+      error_log_file << e.what()
+                     << ": Poco::Syntax exception. Failed to parse base: "
+                     << _base << " " << std::ctime(&curr_timestamp)
+                     << std::endl;
     } else {
       std::cerr << e.what()
                 << ": Poco::Syntax exception. Failed to parse base: " << _base
@@ -192,7 +199,7 @@ void HTMLScraper::parse_url(const std::string &_base, const std::string &_href,
     *parsed_url = "";
     return;
   }
-  
+
   try {
     url = Poco::URI(base, _href);
   } catch (const std::exception &e) {
@@ -200,10 +207,11 @@ void HTMLScraper::parse_url(const std::string &_base, const std::string &_href,
     curr_time = std::chrono::system_clock::now();
     std::time_t curr_timestamp =
         std::chrono::system_clock::to_time_t(curr_time);
-    if (log_file.is_open()) {
-      log_file << e.what()
-               << ": Poco::Syntax exception. Failed to parse href: " << _href
-               << " " << std::ctime(&curr_timestamp) << std::endl;
+    if (error_log_file.is_open()) {
+      error_log_file << e.what()
+                     << ": Poco::Syntax exception. Failed to parse href: "
+                     << _href << " " << std::ctime(&curr_timestamp)
+                     << std::endl;
     } else {
       std::cerr << e.what()
                 << ": Poco::Syntax exception. Failed to parse href: " << _href
