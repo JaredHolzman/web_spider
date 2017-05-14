@@ -16,7 +16,8 @@ HTMLScraper::HTMLScraper(const std::string &root_url) {
   curl_global_init(CURL_GLOBAL_ALL);
 }
 HTMLScraper::HTMLScraper(const std::string &root_url,
-                         const std::string &log_file_name, const std::string &error_log_file_name)
+                         const std::string &log_file_name,
+                         const std::string &error_log_file_name)
     : log_file(), error_log_file() {
   Poco::URI root_uri(root_url);
   root_url_host = root_uri.getHost();
@@ -186,15 +187,16 @@ void HTMLScraper::parse_url(const std::string &_base, const std::string &_href,
     curr_time = std::chrono::system_clock::now();
     std::time_t curr_timestamp =
         std::chrono::system_clock::to_time_t(curr_time);
+    char *ctime = std::ctime(&curr_timestamp);
+    ctime[strlen(ctime) - 2] = '\0';
     if (error_log_file.is_open()) {
-      error_log_file << e.what()
+      error_log_file << ctime << " " << e.what()
                      << ": Poco::Syntax exception. Failed to parse base: "
-                     << _base << " " << std::ctime(&curr_timestamp)
-                     << std::endl;
+                     << _base << std::endl;
     } else {
-      std::cerr << e.what()
-                << ": Poco::Syntax exception. Failed to parse base: " << _base
-                << " " << std::ctime(&curr_timestamp) << std::endl;
+      std::cerr << ctime << " " << e.what()
+                     << ": Poco::Syntax exception. Failed to parse base: "
+                     << _base << std::endl;
     }
     *parsed_url = "";
     return;
@@ -207,15 +209,16 @@ void HTMLScraper::parse_url(const std::string &_base, const std::string &_href,
     curr_time = std::chrono::system_clock::now();
     std::time_t curr_timestamp =
         std::chrono::system_clock::to_time_t(curr_time);
+    char *ctime = std::ctime(&curr_timestamp);
+    ctime[strlen(ctime) - 2] = '\0';
     if (error_log_file.is_open()) {
-      error_log_file << e.what()
+      error_log_file << ctime << " " << e.what()
                      << ": Poco::Syntax exception. Failed to parse href: "
-                     << _href << " " << std::ctime(&curr_timestamp)
-                     << std::endl;
+                     << _href << std::endl;
     } else {
-      std::cerr << e.what()
-                << ": Poco::Syntax exception. Failed to parse href: " << _href
-                << " " << std::ctime(&curr_timestamp) << std::endl;
+      std::cerr << ctime << " " << e.what()
+                     << ": Poco::Syntax exception. Failed to parse href: "
+                     << _href << std::endl;
     }
     *parsed_url = "";
     return;
