@@ -17,7 +17,7 @@ size_t curl_to_string(void *ptr, size_t size, size_t nmemb, void *data);
 class HTMLScraper {
  public:
   HTMLScraper(const std::string &root_url);
-  HTMLScraper(const std::string &root_url, const std::string &log_file_name);
+  HTMLScraper(const std::string &root_url, const std::string &log_file_name, const std::string &error_log_file_name);
   ~HTMLScraper();
   void get_page_hrefs(const std::string &webpage_address,
                       std::vector<std::unique_ptr<std::string>> *hrefs);

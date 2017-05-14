@@ -16,14 +16,14 @@ HTMLScraper::HTMLScraper(const std::string &root_url) {
   curl_global_init(CURL_GLOBAL_ALL);
 }
 HTMLScraper::HTMLScraper(const std::string &root_url,
-                         const std::string &log_file_name)
+                         const std::string &log_file_name, const std::string &error_log_file_name)
     : log_file(), error_log_file() {
   Poco::URI root_uri(root_url);
   root_url_host = root_uri.getHost();
   curl_global_init(CURL_GLOBAL_ALL);
 
   log_file.open(log_file_name, std::ios::app);
-  error_log_file.open(log_file_name + "_errors", std::ios::app);
+  error_log_file.open(error_log_file_name, std::ios::app);
   log_file << "timestamp, webpage_address, cURL_code, namelookup_time, "
               "connect_time, appconnect_time, pretransfer_time, redirect_time, "
               "starttransfer_time, total_time"

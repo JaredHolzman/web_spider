@@ -28,8 +28,8 @@ int main(int argc, char *argv[]) {
     return 0;
   }
 
-  std::ofstream output;
-  output.open("./logs/output.txt", std::ios::app);
+  std::ofstream data;
+  data.open("./logs/data.csv", std::ios::app);
   std::ofstream trial_count;
 
   if (argc == 3) {
@@ -37,7 +37,7 @@ int main(int argc, char *argv[]) {
   }
 
   for (size_t max_threads = 1; max_threads <= 50; max_threads++) {
-    output << max_threads;
+    data << max_threads;
 
     for (size_t trials = 0; trials < 20; trials++) {
       int count = 0;
@@ -65,7 +65,8 @@ int main(int argc, char *argv[]) {
 
         std::string root_webpage_address = std::string(argv[1]);
         ThreadsafeExQueue<Page> ts_queue;
-        HTMLScraper scraper(root_webpage_address, curl_log);
+        HTMLScraper scraper(root_webpage_address, curl_log,
+                            curl_log + "_errors");
         WebspiderThreadpools spider(root_webpage_address, max_threads, 3,
                                     ts_queue, scraper, false);
 
@@ -74,26 +75,27 @@ int main(int argc, char *argv[]) {
         double end_time = GetMonotonicTime();
         delta += end_time - start_time;
 
-        std::ifstream trial_log;
-        trial_log.open("./logs/output.txt");
+        std::ifstream trial_log_errors;
+        trial_log_errors.open("./logs/" + curl_log + "_errors");
 
         std::string line;
         no_fail = true;
-        while (getline(trial_log, line)) {
+        while (getline(trial_log_errors, line)) {
           no_fail &=
               line.find("curl_easy_perform() failed", 0) == std::string::npos;
         }
 
+        trial_log_errors.close();
         std::this_thread::sleep_for(std::chrono::seconds(2));
 
         count++;
       }
       // Write delta time to file
-      output << " " << delta;
+      data << " " << delta;
 
       std::this_thread::sleep_for(std::chrono::seconds(2));
     }
-    output << std::endl;
+    data << std::endl;
   }
-  output.close();
+  data.close();
 }
