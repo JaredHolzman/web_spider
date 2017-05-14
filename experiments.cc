@@ -78,7 +78,7 @@ int main(int argc, char *argv[]) {
         double start_time = GetMonotonicTime();
         spider.crawl_web();
         double end_time = GetMonotonicTime();
-        delta += end_time - start_time;
+        delta = end_time - start_time;
 
         std::ifstream trial_log_errors;
         trial_log_errors.open("./logs/" + curl_log + "_errors");
