@@ -23,7 +23,7 @@ class WebspiderThreads {
   void crawl_web();
 
  private:
-  void crawl_page();
+  void crawl_page(size_t thread_number);
 
   const std::string &root_webpage_address;
   const size_t max_threads;
