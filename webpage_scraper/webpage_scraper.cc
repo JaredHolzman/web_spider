@@ -21,13 +21,18 @@ HTMLScraper::HTMLScraper(const std::string &root_url,
                          const std::string &error_log_file_name)
     : path_to_logs(path_to_logs),
       log_file_name(log_file_name),
-      error_log_file_name(error_log_file_name) {
+      error_log_file_name(error_log_file_name),
+      failures_mutex(),
+      curl_failures(0) {
   Poco::URI root_uri(root_url);
   root_url_host = root_uri.getHost();
   curl_global_init(CURL_GLOBAL_ALL);
 }
-HTMLScraper::~HTMLScraper() {
-  curl_global_cleanup();
+HTMLScraper::~HTMLScraper() { curl_global_cleanup(); }
+
+int HTMLScraper::get_curl_failures(){
+    std::unique_lock<std::mutex> lock(failures_mutex);
+    return curl_failures;    
 }
 
 /**
@@ -58,16 +63,18 @@ void HTMLScraper::get_page_hrefs(
   }
 
   parse_html(webpage_html, webpage_address, hrefs, log_file, error_log_file);
-  
+
   log_file.close();
   error_log_file.close();
 }
 
-void HTMLScraper::write_log(const CURLcode &res, const std::string &webpage_address,
+void HTMLScraper::write_log(
+    const CURLcode &res, const std::string &webpage_address,
     const double &namelookup_time, const double &connect_time,
     const double &appconnect_time, const double &pretransfer_time,
     const double &redirect_time, const double &starttransfer_time,
-    const double &total_time, std::ofstream &log_file, std::ofstream &error_log_file) {
+    const double &total_time, std::ofstream &log_file,
+    std::ofstream &error_log_file) {
   std::chrono::time_point<std::chrono::system_clock> curr_time;
   curr_time = std::chrono::system_clock::now();
   std::time_t curr_timestamp = std::chrono::system_clock::to_time_t(curr_time);
@@ -92,6 +99,9 @@ void HTMLScraper::write_log(const CURLcode &res, const std::string &webpage_addr
     error_log_file << ctime
                    << " curl_easy_perform() failed: " << curl_easy_strerror(res)
                    << " " << webpage_address << std::endl;
+    std::unique_lock<std::mutex> lock(failures_mutex);
+    curl_failures++;
+    lock.unlock();
   }
 }
 
@@ -100,7 +110,9 @@ void HTMLScraper::write_log(const CURLcode &res, const std::string &webpage_addr
    Includes response headers as well for now for debugging.
 **/
 void HTMLScraper::get_page_html(const std::string &webpage_address,
-                                std::string *webpage_html, std::ofstream &log_file, std::ofstream &error_log_file) {
+                                std::string *webpage_html,
+                                std::ofstream &log_file,
+                                std::ofstream &error_log_file) {
   CURL *curl;
   CURLcode res;
   std::string pagedata;
@@ -148,7 +160,9 @@ void HTMLScraper::get_page_html(const std::string &webpage_address,
 **/
 void HTMLScraper::parse_html(const std::string &webpage_html,
                              const std::string &webpage_address,
-                             std::vector<std::unique_ptr<std::string>> *hrefs, std::ofstream &log_file, std::ofstream &error_log_file) {
+                             std::vector<std::unique_ptr<std::string>> *hrefs,
+                             std::ofstream &log_file,
+                             std::ofstream &error_log_file) {
   std::vector<GumboNode *> nodes;
 
   GumboOutput *output = gumbo_parse(webpage_html.c_str());
@@ -169,7 +183,8 @@ void HTMLScraper::parse_html(const std::string &webpage_html,
         (href = gumbo_get_attribute(&node->v.element.attributes, "href")) &&
         !(href_string = std::string(href->value)).empty()) {
       std::string parsed_url;
-      parse_url(webpage_address, href_string, &parsed_url, log_file, error_log_file);
+      parse_url(webpage_address, href_string, &parsed_url, log_file,
+                error_log_file);
       if (!parsed_url.empty()) {
         hrefs->push_back(
             std::unique_ptr<std::string>(new std::string(parsed_url)));
@@ -186,7 +201,8 @@ void HTMLScraper::parse_html(const std::string &webpage_html,
 }
 
 void HTMLScraper::parse_url(const std::string &_base, const std::string &_href,
-                            std::string *parsed_url, std::ofstream &log_file, std::ofstream &error_log_file) {
+                            std::string *parsed_url, std::ofstream &log_file,
+                            std::ofstream &error_log_file) {
   Poco::URI base;
   Poco::URI url;
 

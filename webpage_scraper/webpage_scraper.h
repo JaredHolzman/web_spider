@@ -11,7 +11,9 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <mutex>
 #include "gumbo.h"
+
 size_t curl_to_string(void *ptr, size_t size, size_t nmemb, void *data);
 
 class HTMLScraper {
@@ -24,12 +26,15 @@ class HTMLScraper {
   void get_page_hrefs(const std::string &webpage_address,
                       const size_t &thread_number,
                       std::vector<std::unique_ptr<std::string>> *hrefs);
-
+int get_curl_failures();
  private:
   std::string path_to_logs;
   std::string log_file_name;
   std::string error_log_file_name;
   std::string root_url_host;
+  std::mutex failures_mutex;
+  int curl_failures;
+  
   void write_log(const CURLcode &res, const std::string &webpage_address,
                  const double &namelookup_time, const double &connect_time,
                  const double &appconnect_time, const double &pretransfer_time,
