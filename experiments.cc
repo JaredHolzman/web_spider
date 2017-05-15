@@ -92,19 +92,9 @@ int main(int argc, char *argv[]) {
         delta = end_time - start_time;
 
         // Check if any errors occured
-        std::ifstream trial_log_errors;
-        trial_log_errors.open("./logs/" + curl_log + "_errors");
-
-        std::string line;
-        no_fail = true;
-        while (getline(trial_log_errors, line)) {
-          no_fail &=
-              line.find("curl_easy_perform() failed", 0) == std::string::npos;
-        }
-
-        trial_log_errors.close();
+        no_fail = scraper.get_curl_failures() == 0;
+        
         std::this_thread::sleep_for(std::chrono::seconds(2));
-
         count++;
       }
       // Write delta time to file
