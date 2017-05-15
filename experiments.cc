@@ -20,6 +20,20 @@ double GetMonotonicTime() {
   return time;
 }
 
+std::string make_directories(size_t max_threads, size_t trials) {
+  // Make path '/logs/max_threads/trial'
+  std::string curl_log_path =
+      "./logs/" + std::to_string(max_threads) + "/" + std::to_string(trials);
+  system(("mkdir -p " + curl_log_path).c_str());
+
+  // Make sub directory for each thread
+  for (size_t i = 0; i < max_threads; i++) {
+    system(("mkdir " + curl_log_path + "/" + std::to_string(i)).c_str());
+  }
+
+  return curl_log_path;
+}
+
 int main(int argc, char *argv[]) {
   if (argc != 2 && argc != 3) {
     std::cout << "Usage: ./experiements [http://www.example.com] [output file]"
@@ -60,20 +74,14 @@ int main(int argc, char *argv[]) {
         std::cout << time << " Threads: " << max_threads << " Trial: " << trials
                   << std::endl;
 
-        std::string curl_log_path = "mkdir -p ./logs/" +
-                                    std::to_string(max_threads) + "/" +
-                                    std::to_string(trials);
-        system(curl_log_path.c_str());
-
-        const std::string curl_log =
-            "./logs/" + std::to_string(max_threads) + "/" +
-            std::to_string(trials) + "/curl_log_" +
-            std::to_string(max_threads) + "_" + std::to_string(trials) + "_" +
-            std::to_string(count);
+        std::string curl_log_path = make_directories(max_threads, trials);
+        const std::string curl_log = "curl_log_" + std::to_string(max_threads) +
+                                     "_" + std::to_string(trials) + "_" +
+                                     std::to_string(count);
 
         std::string root_webpage_address = std::string(argv[1]);
         ThreadsafeExQueue<Page> ts_queue;
-        HTMLScraper scraper(root_webpage_address, curl_log,
+        HTMLScraper scraper(root_webpage_address, curl_log_path, curl_log,
                             curl_log + "_errors");
         WebspiderThreadpools spider(root_webpage_address, max_threads, 3,
                                     ts_queue, scraper, false);
@@ -83,6 +91,7 @@ int main(int argc, char *argv[]) {
         double end_time = GetMonotonicTime();
         delta = end_time - start_time;
 
+        // Check if any errors occured
         std::ifstream trial_log_errors;
         trial_log_errors.open("./logs/" + curl_log + "_errors");
 

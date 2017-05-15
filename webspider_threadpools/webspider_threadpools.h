@@ -23,7 +23,7 @@ class WebspiderThreadpools {
   void crawl_web();
 
  private:
-  void crawl_page();
+  void crawl_page(size_t thread_number);
   void join_workers(std::thread &thread, bool verbose);
 
   const std::string &root_webpage_address;

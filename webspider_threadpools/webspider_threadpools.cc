@@ -23,7 +23,8 @@ void WebspiderThreadpools::crawl_web() {
 
   // Create threads to crawl webpages
   for (size_t i = 0; i < max_threads; i++) {
-    workers[i] = std::thread(&WebspiderThreadpools::crawl_page, this);
+      
+    workers[i] = std::thread(&WebspiderThreadpools::crawl_page, this, i);
   }
 
   // Wait for threads to complete
@@ -32,7 +33,7 @@ void WebspiderThreadpools::crawl_web() {
   }
 }
 
-void WebspiderThreadpools::crawl_page() {
+void WebspiderThreadpools::crawl_page(size_t thread_number) {
   while (!is_finished) {
     std::unique_ptr<Page> page = tsqueue.remove();
 
@@ -45,7 +46,7 @@ void WebspiderThreadpools::crawl_page() {
     }
 
     std::vector<std::unique_ptr<std::string>> linked_pages;
-    scraper.get_page_hrefs(*page->page_href, &linked_pages);
+    scraper.get_page_hrefs(*page->page_href, thread_number, &linked_pages);
 
     int depth_next = page->depth + 1;
     for (size_t i = 0; i < linked_pages.size(); i++) {

@@ -16,23 +16,18 @@ HTMLScraper::HTMLScraper(const std::string &root_url) {
   curl_global_init(CURL_GLOBAL_ALL);
 }
 HTMLScraper::HTMLScraper(const std::string &root_url,
+                         const std::string &path_to_logs,
                          const std::string &log_file_name,
                          const std::string &error_log_file_name)
-    : log_file(), error_log_file() {
+    : path_to_logs(path_to_logs),
+      log_file_name(log_file_name),
+      error_log_file_name(error_log_file_name) {
   Poco::URI root_uri(root_url);
   root_url_host = root_uri.getHost();
   curl_global_init(CURL_GLOBAL_ALL);
-
-  log_file.open(log_file_name, std::ios::app);
-  error_log_file.open(error_log_file_name, std::ios::app);
-  log_file << "timestamp, webpage_address, cURL_code, namelookup_time, "
-              "connect_time, appconnect_time, pretransfer_time, redirect_time, "
-              "starttransfer_time, total_time"
-           << std::endl;
 }
 HTMLScraper::~HTMLScraper() {
   curl_global_cleanup();
-  log_file.close();
 }
 
 /**
@@ -40,24 +35,39 @@ HTMLScraper::~HTMLScraper() {
  with of all hrefs on that page.
  **/
 void HTMLScraper::get_page_hrefs(
-    const std::string &webpage_address,
+    const std::string &webpage_address, const size_t &thread_number,
     std::vector<std::unique_ptr<std::string>> *hrefs) {
+  std::ofstream log_file;
+  std::ofstream error_log_file;
+  log_file.open(
+      path_to_logs + "/" + std::to_string(thread_number) + "/" + log_file_name,
+      std::ios::app);
+  error_log_file.open(path_to_logs + "/" + std::to_string(thread_number) + "/" +
+                          error_log_file_name,
+                      std::ios::app);
+  log_file << "timestamp, webpage_address, cURL_code, namelookup_time, "
+              "connect_time, appconnect_time, pretransfer_time, redirect_time, "
+              "starttransfer_time, total_time"
+           << std::endl;
+
   std::string webpage_html;
-  get_page_html(webpage_address, &webpage_html);
+  get_page_html(webpage_address, &webpage_html, log_file, error_log_file);
 
   if (webpage_html.empty()) {
     return;
   }
 
-  parse_html(webpage_html, webpage_address, hrefs);
+  parse_html(webpage_html, webpage_address, hrefs, log_file, error_log_file);
+  
+  log_file.close();
+  error_log_file.close();
 }
 
-void HTMLScraper::write_log(
-    const CURLcode &res, const std::string &webpage_address,
+void HTMLScraper::write_log(const CURLcode &res, const std::string &webpage_address,
     const double &namelookup_time, const double &connect_time,
     const double &appconnect_time, const double &pretransfer_time,
     const double &redirect_time, const double &starttransfer_time,
-    const double &total_time) {
+    const double &total_time, std::ofstream &log_file, std::ofstream &error_log_file) {
   std::chrono::time_point<std::chrono::system_clock> curr_time;
   curr_time = std::chrono::system_clock::now();
   std::time_t curr_timestamp = std::chrono::system_clock::to_time_t(curr_time);
@@ -90,7 +100,7 @@ void HTMLScraper::write_log(
    Includes response headers as well for now for debugging.
 **/
 void HTMLScraper::get_page_html(const std::string &webpage_address,
-                                std::string *webpage_html) {
+                                std::string *webpage_html, std::ofstream &log_file, std::ofstream &error_log_file) {
   CURL *curl;
   CURLcode res;
   std::string pagedata;
@@ -124,7 +134,7 @@ void HTMLScraper::get_page_html(const std::string &webpage_address,
 
     write_log(res, webpage_address, namelookup_time, connect_time,
               appconnect_time, pretransfer_time, redirect_time,
-              starttransfer_time, total_time);
+              starttransfer_time, total_time, log_file, error_log_file);
 
     /* always cleanup */
     curl_easy_cleanup(curl);
@@ -138,7 +148,7 @@ void HTMLScraper::get_page_html(const std::string &webpage_address,
 **/
 void HTMLScraper::parse_html(const std::string &webpage_html,
                              const std::string &webpage_address,
-                             std::vector<std::unique_ptr<std::string>> *hrefs) {
+                             std::vector<std::unique_ptr<std::string>> *hrefs, std::ofstream &log_file, std::ofstream &error_log_file) {
   std::vector<GumboNode *> nodes;
 
   GumboOutput *output = gumbo_parse(webpage_html.c_str());
@@ -159,7 +169,7 @@ void HTMLScraper::parse_html(const std::string &webpage_html,
         (href = gumbo_get_attribute(&node->v.element.attributes, "href")) &&
         !(href_string = std::string(href->value)).empty()) {
       std::string parsed_url;
-      parse_url(webpage_address, href_string, &parsed_url);
+      parse_url(webpage_address, href_string, &parsed_url, log_file, error_log_file);
       if (!parsed_url.empty()) {
         hrefs->push_back(
             std::unique_ptr<std::string>(new std::string(parsed_url)));
@@ -176,7 +186,7 @@ void HTMLScraper::parse_html(const std::string &webpage_html,
 }
 
 void HTMLScraper::parse_url(const std::string &_base, const std::string &_href,
-                            std::string *parsed_url) {
+                            std::string *parsed_url, std::ofstream &log_file, std::ofstream &error_log_file) {
   Poco::URI base;
   Poco::URI url;
 
@@ -195,8 +205,8 @@ void HTMLScraper::parse_url(const std::string &_base, const std::string &_href,
                      << _base << std::endl;
     } else {
       std::cerr << ctime << " " << e.what()
-                     << ": Poco::Syntax exception. Failed to parse base: "
-                     << _base << std::endl;
+                << ": Poco::Syntax exception. Failed to parse base: " << _base
+                << std::endl;
     }
     *parsed_url = "";
     return;
@@ -217,8 +227,8 @@ void HTMLScraper::parse_url(const std::string &_base, const std::string &_href,
                      << _href << std::endl;
     } else {
       std::cerr << ctime << " " << e.what()
-                     << ": Poco::Syntax exception. Failed to parse href: "
-                     << _href << std::endl;
+                << ": Poco::Syntax exception. Failed to parse href: " << _href
+                << std::endl;
     }
     *parsed_url = "";
     return;
