@@ -30,9 +30,9 @@ HTMLScraper::HTMLScraper(const std::string &root_url,
 }
 HTMLScraper::~HTMLScraper() { curl_global_cleanup(); }
 
-int HTMLScraper::get_curl_failures(){
-    std::unique_lock<std::mutex> lock(failures_mutex);
-    return curl_failures;    
+int HTMLScraper::get_curl_failures() {
+  std::unique_lock<std::mutex> lock(failures_mutex);
+  return curl_failures;
 }
 
 /**
@@ -50,10 +50,6 @@ void HTMLScraper::get_page_hrefs(
   error_log_file.open(path_to_logs + "/" + std::to_string(thread_number) + "/" +
                           error_log_file_name,
                       std::ios::app);
-  log_file << "timestamp, webpage_address, cURL_code, namelookup_time, "
-              "connect_time, appconnect_time, pretransfer_time, redirect_time, "
-              "starttransfer_time, total_time"
-           << std::endl;
 
   std::string webpage_html;
   get_page_html(webpage_address, &webpage_html, log_file, error_log_file);
@@ -68,6 +64,11 @@ void HTMLScraper::get_page_hrefs(
   error_log_file.close();
 }
 
+/**
+ * timestamp, webpage_address, cURL_code, namelookup_time,
+ * connect_time, appconnect_time, pretransfer_time, redirect_time,
+ * starttransfer_time, total_time
+**/
 void HTMLScraper::write_log(
     const CURLcode &res, const std::string &webpage_address,
     const double &namelookup_time, const double &connect_time,
@@ -261,6 +262,6 @@ void HTMLScraper::parse_url(const std::string &_base, const std::string &_href,
     return;
   }
 
-  //   std::cout << url.toString() << std::endl;
+  // std::cout << url.toString() << std::endl;
   *parsed_url = url.toString();
 }
