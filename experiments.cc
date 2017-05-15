@@ -60,13 +60,16 @@ int main(int argc, char *argv[]) {
         std::cout << time << " Threads: " << max_threads << " Trial: " << trials
                   << std::endl;
 
-        std::string curl_log_path =
-            "mkdir -p ./logs/" + std::to_string(max_threads);
+        std::string curl_log_path = "mkdir -p ./logs/" +
+                                    std::to_string(max_threads) + "/" +
+                                    std::to_string(trials);
         system(curl_log_path.c_str());
-        
+
         const std::string curl_log =
-            "./logs/"+std::to_string(max_threads)+"/curl_log_" + std::to_string(max_threads) + "_" +
-            std::to_string(trials) + "_" + std::to_string(count);
+            "./logs/" + std::to_string(max_threads) + "/" +
+            std::to_string(trials) + "/curl_log_" +
+            std::to_string(max_threads) + "_" + std::to_string(trials) + "_" +
+            std::to_string(count);
 
         std::string root_webpage_address = std::string(argv[1]);
         ThreadsafeExQueue<Page> ts_queue;
