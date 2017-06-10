@@ -36,7 +36,7 @@ std::string make_directories(size_t max_threads, size_t trials) {
 
 int main(int argc, char *argv[]) {
   if (argc != 2 && argc != 3) {
-    std::cout << "Usage: ./experiements [http://www.example.com] [output file]"
+    std::cout << "Usage: ./experiments [http://www.example.com] [output file]"
               << std::endl;
 
     return 0;
