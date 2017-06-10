@@ -93,7 +93,7 @@ int main(int argc, char *argv[]) {
 
         // Check if any errors occured
         no_fail = scraper.get_curl_failures() == 0;
-        
+
         std::this_thread::sleep_for(std::chrono::seconds(2));
         count++;
       }

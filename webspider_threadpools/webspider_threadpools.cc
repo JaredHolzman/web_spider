@@ -23,7 +23,7 @@ void WebspiderThreadpools::crawl_web() {
 
   // Create threads to crawl webpages
   for (size_t i = 0; i < max_threads; i++) {
-      
+
     workers[i] = std::thread(&WebspiderThreadpools::crawl_page, this, i);
   }
 
