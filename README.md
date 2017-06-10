@@ -17,10 +17,12 @@ Multithreaded Web Spider meant for ~~evil~~ good. Two implementations, one with 
 To run the spider, run:
 ```
 make
-./spider <webpage-address> <max-threads> <max-depth> <t|p>
+./spider <webpage-address> <max-threads> <max-depth> <t|p> <v>
 ```
-`www.umass.edu` is a good example.
-For now, this will just print out hrefs found as it explores up to `max-depth`.
+
+`http://www.umass.edu` is a good example.
+
+For now, this will just print out (if 'v' is passed as an argument) hrefs  found as it explores up to `max-depth`.
 
 ## Dependencies
 * libcurl
